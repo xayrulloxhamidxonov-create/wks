@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual laboratoriya — fanlar to‘plami</title>
+<meta name="description" content="7 fan bo‘yicha interaktiv virtual laboratoriyalar: gidrostatika, fizika, astronomiya, ekologiya, quymakorlik, mashinasozlik va nazariy mexanika. Animatsiyalar, SI birliklar va hisobotlar.">
+<style>
+:root{
+  --bg:#050d15;
+  --ink:#e9f4fb;
+  --muted:#9cb6c8;
+  --dim:#6f8b9e;
+  --line:rgba(150,205,235,.13);
+  --line2:rgba(150,205,235,.24);
+  --teal:#4fd1c5;
+  --teal2:#2fb3a7;
+  --amber:#f5b84b;
+  --blue:#5aa9ff;
+  --red:#ff6b6b;
+  --green:#5ee08a;
+  --panel:rgba(12,28,43,.72);
+  --radius:18px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--ink);
+  background:
+    radial-gradient(1100px 700px at 8% -8%,rgba(35,150,150,.18),transparent 60%),
+    radial-gradient(900px 600px at 102% 0%,rgba(45,95,170,.16),transparent 55%),
+    linear-gradient(180deg,#061019 0%,#050b12 55%,#04080d 100%);
+  background-attachment:fixed;
+  font-family:var(--ui);
+  font-size:15px;
+  line-height:1.5;
+  letter-spacing:.01em;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(79,209,197,.28)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+h1,h2,h3,h4,p{margin:0}
+ul{margin:0}
+.shell{max-width:1460px;margin:0 auto;padding:0 26px}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:60;
+  background:rgba(5,13,20,.82);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:1460px;margin:0 auto;padding:12px 26px;
+  display:flex;align-items:center;gap:20px;
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;color:inherit;text-decoration:none}
+.brand-mark{
+  width:42px;height:42px;flex:none;border-radius:12px;
+  background:linear-gradient(145deg,rgba(79,209,197,.22),rgba(90,169,255,.10));
+  border:1px solid rgba(79,209,197,.34);
+  display:grid;place-items:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.25);
+}
+.brand-mark svg{width:25px;height:25px}
+.brand h1{font-size:15px;font-weight:750;letter-spacing:.18em;line-height:1.1}
+.brand p{font-size:11.5px;color:var(--dim);margin-top:3px;white-space:nowrap}
+.brand .credit{
+  display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;
+  color:var(--dim);opacity:.72;margin-top:3px;white-space:nowrap;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+}
+.top-metas{margin-left:auto;display:flex;align-items:center;gap:10px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:11.5px;color:var(--muted);
+  border:1px solid var(--line);border-radius:999px;padding:7px 11px;
+  background:rgba(255,255,255,.025);white-space:nowrap;
+}
+.chip i{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px rgba(79,209,197,.8)}
+.nav-chip{cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.nav-chip:hover{border-color:rgba(79,209,197,.45);color:var(--ink);background:rgba(79,209,197,.07)}
+.student{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim);white-space:nowrap}
+.student input{
+  width:190px;background:rgba(255,255,255,.03);border:1px solid var(--line2);
+  border-radius:9px;padding:7px 10px;color:var(--ink);font-size:12px;outline:none;
+  transition:border-color .2s,background .2s;
+}
+.student input:focus{border-color:rgba(79,209,197,.55);background:rgba(79,209,197,.05)}
+.student input::placeholder{color:var(--dim)}
+
+/* ---------- hero ---------- */
+.hero{padding:38px 26px 6px;max-width:1460px;margin:0 auto}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:10.5px;font-weight:750;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:14px;
+}
+.kicker::before{content:"";width:22px;height:1px;background:var(--teal);opacity:.6}
+.hero h2{
+  font-size:clamp(25px,3vw,38px);line-height:1.12;font-weight:680;
+  letter-spacing:-.02em;max-width:900px;
+  background:linear-gradient(100deg,#f2fbff 10%,#b9dfea 55%,#7fb7c9 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{max-width:740px;color:var(--muted);font-size:13.5px;line-height:1.65;margin-top:13px}
+.hero-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.hero-stats span{
+  display:inline-flex;align-items:baseline;gap:6px;font-size:11.5px;color:var(--dim);
+  border:1px solid var(--line);border-radius:999px;padding:5px 11px;background:rgba(255,255,255,.02);
+}
+.hero-stats b{font-family:var(--mono);font-size:12.5px;color:var(--teal);font-weight:600}
+
+/* ---------- tabs ---------- */
+.tabs{
+  display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;
+  padding:18px 26px 6px;max-width:1460px;margin:0 auto;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  display:inline-flex;align-items:center;gap:9px;flex:none;
+  border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.022);color:var(--muted);
+  padding:9px 14px;font-size:12.5px;font-weight:550;
+  transition:border-color .2s,background .2s,color .2s,transform .15s;
+}
+.tab:hover{border-color:var(--line2);color:var(--ink);background:rgba(255,255,255,.04)}
+.tab .num{
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  border:1px solid var(--line);border-radius:6px;padding:1px 5px;line-height:1.4;
+}
+.tab.active{
+  color:#f4fffd;border-color:rgba(79,209,197,.48);
+  background:linear-gradient(135deg,rgba(79,209,197,.17),rgba(90,169,255,.08));
+  box-shadow:0 0 0 1px rgba(79,209,197,.06) inset,0 8px 24px rgba(0,0,0,.22);
+}
+.tab.active .num{color:var(--teal);border-color:rgba(79,209,197,.35)}
+.tab:active{transform:translateY(1px)}
+
+/* ---------- lab layout ---------- */
+main{padding-bottom:10px}
+.lab{display:none;padding:20px 26px 0;max-width:1460px;margin:0 auto}
+.lab.active{display:block;animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lab-head{margin:9px 0 20px;max-width:900px}
+.eyebrow{
+  font-size:10px;font-weight:750;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:8px;
+}
+.lab-head h2{font-size:clamp(20px,2.2vw,28px);font-weight:650;letter-spacing:-.015em;line-height:1.22}
+.lab-head .goal{color:var(--muted);font-size:13px;line-height:1.65;margin-top:9px;max-width:780px}
+.lab-body{
+  display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,.85fr);
+  gap:20px;align-items:start;
+}
+.stage-wrap{
+  position:sticky;top:88px;
+  border-radius:var(--radius);border:1px solid var(--line);
+  background:#08131e;overflow:hidden;
+  box-shadow:0 26px 70px rgba(0,0,0,.38);
+}
+.stage-wrap canvas{display:block;width:100%;height:auto;touch-action:none}
+.live-badge{
+  position:absolute;right:14px;bottom:14px;
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);background:rgba(5,14,22,.72);
+  border:1px solid var(--line);border-radius:999px;padding:5px 9px;
+  backdrop-filter:blur(8px);
+}
+.live-badge .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 0 rgba(94,224,138,.6);animation:pulse 2.2s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(94,224,138,.5)}
+  70%{box-shadow:0 0 0 7px rgba(94,224,138,0)}
+  100%{box-shadow:0 0 0 0 rgba(94,224,138,0)}
+}
+
+/* ---------- side cards ---------- */
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{
+  background:linear-gradient(180deg,rgba(15,34,51,.78),rgba(8,20,32,.78));
+  border:1px solid var(--line);border-radius:16px;padding:15px 15px 14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+.card h3{
+  font-size:10px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 11px;
+}
+.eq-list{display:flex;flex-wrap:wrap;gap:5px;margin:0;padding:0;list-style:none}
+.eq-list li{
+  font-size:11px;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:3px 8px;background:rgba(255,255,255,.02);
+}
+.hint{font-size:11px;line-height:1.55;color:var(--dim);margin-top:9px}
+.hint b{color:var(--muted);font-weight:600}
+
+/* controls */
+.control{display:block;margin-bottom:13px}
+.control:last-child{margin-bottom:0}
+.control .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.control .name{font-size:12px;color:var(--muted)}
+.control output{
+  font-family:var(--mono);font-size:11.5px;color:var(--teal);
+  background:rgba(79,209,197,.07);border:1px solid rgba(79,209,197,.18);
+  border-radius:7px;padding:2px 7px;white-space:nowrap;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;display:block;width:100%;
+  height:24px;margin:0;background:transparent;cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:5px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(79,209,197,.55),rgba(90,169,255,.42));
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+  margin-top:-5.5px;background:#eafcff;border:3px solid #2fb3a7;
+  box-shadow:0 0 0 4px rgba(79,209,197,.10),0 2px 6px rgba(0,0,0,.35);
+}
+input[type=range]::-moz-range-track{height:5px;border-radius:999px;background:linear-gradient(90deg,rgba(79,209,197,.55),rgba(90,169,255,.42))}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#eafcff;border:3px solid #2fb3a7}
+select{
+  width:100%;background:#0b1c2a;color:var(--ink);border:1px solid var(--line2);
+  border-radius:9px;padding:8px 10px;font-size:12.5px;outline:none;margin-top:2px;
+  transition:border-color .2s;
+}
+select:focus{border-color:rgba(79,209,197,.55)}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border-radius:10px;padding:9px 13px;font-size:12px;font-weight:650;
+  border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--ink);
+  transition:border-color .2s,background .2s,transform .12s,box-shadow .2s;
+}
+.btn:hover{border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.06)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{
+  border-color:transparent;color:#04211f;
+  background:linear-gradient(135deg,#61e0d3,#3cb9cf);
+  box-shadow:0 8px 22px rgba(47,179,167,.18);
+}
+.btn.primary:hover{background:linear-gradient(135deg,#74eadf,#4ac6da)}
+.btn.wide{width:100%}
+.btn-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+
+/* results */
+.big-result{
+  display:flex;flex-direction:column;gap:1px;
+  padding:12px 14px;border-radius:13px;margin-bottom:11px;
+  background:linear-gradient(135deg,rgba(79,209,197,.13),rgba(90,169,255,.05));
+  border:1px solid rgba(79,209,197,.2);
+}
+.big-result b{
+  font-family:var(--mono);font-size:24px;font-weight:650;line-height:1.2;
+  color:#defffa;letter-spacing:-.02em;
+}
+.big-result small{font-size:10.5px;color:var(--muted)}
+.readout{width:100%;border-collapse:collapse;font-size:12px}
+.readout td{padding:6px 0;border-bottom:1px solid rgba(150,205,235,.07);vertical-align:baseline}
+.readout tr:last-child td{border-bottom:0}
+.readout td:first-child{color:var(--muted);padding-right:10px}
+.readout td:last-child{text-align:right;white-space:nowrap}
+.readout b{font-family:var(--mono);font-weight:600;color:var(--ink);font-size:12px}
+.readout .unit{color:var(--dim);font-size:10px;margin-left:2px}
+.readout tr.accent td{color:var(--teal)}
+.readout tr.accent b{color:#9ff0e7}
+.state-banner{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 11px;border-radius:11px;margin-bottom:11px;
+  font-size:12px;font-weight:650;border:1px solid var(--line);
+  color:var(--muted);background:rgba(255,255,255,.025);
+}
+.state-banner::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.state-banner.ok{color:#7de9a8;background:rgba(94,224,138,.07);border-color:rgba(94,224,138,.22)}
+.state-banner.bad{color:#ff9292;background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.22)}
+.state-banner.eq{color:#84c4ff;background:rgba(90,169,255,.07);border-color:rgba(90,169,255,.22)}
+.state-banner.held{color:#e9c87c;background:rgba(245,184,75,.07);border-color:rgba(245,184,75,.2)}
+
+/* calculation */
+.calc-box{
+  background:rgba(4,12,19,.55);border:1px solid var(--line);border-radius:11px;
+  padding:11px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.85;
+  color:#cfe3ef;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
+}
+.calc-box + .btn{margin-top:10px}
+.report-btn{width:100%;margin-top:10px}
+
+/* reference */
+.reference{padding:48px 26px 30px;max-width:1460px;margin:0 auto}
+.section-head{margin-bottom:20px}
+.section-head h2{font-size:clamp(20px,2.2vw,27px);font-weight:650;letter-spacing:-.015em}
+.ref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.ref-card h3{margin-bottom:12px}
+.formula-list{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.formula-list li{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:7px 0;border-bottom:1px dashed rgba(150,205,235,.08);
+  font-size:12px;color:var(--muted);
+}
+.formula-list li:last-child{border-bottom:0;padding-bottom:0}
+.formula-list code{font-family:var(--mono);color:#9ff0e7;font-size:11.5px;white-space:nowrap}
+.ref-table{width:100%;border-collapse:collapse;font-size:12px}
+.ref-table th{
+  text-align:left;color:var(--dim);font-weight:600;font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;padding:5px 0;border-bottom:1px solid var(--line);
+}
+.ref-table td{padding:6px 0;border-bottom:1px solid rgba(150,205,235,.06);color:var(--muted)}
+.ref-table tr:last-child td{border-bottom:0}
+.ref-table td:last-child{text-align:right;font-family:var(--mono);color:var(--ink);white-space:nowrap}
+.unit-list{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;margin:0;padding:0;list-style:none}
+.unit-list li{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed rgba(150,205,235,.07);padding-bottom:7px}
+.unit-list code{font-family:var(--mono);color:#9ff0e7;font-size:11px;white-space:nowrap}
+
+/* ---------- views & home ---------- */
+.view{display:none}
+.view.active{display:block}
+.home-hero{padding-bottom:10px}
+.home-hero h2{max-width:980px}
+.home-hero p{max-width:780px}
+.catalog{max-width:1460px;margin:0 auto;padding:30px 26px 10px}
+.catalog-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+.catalog-head h2{font-size:clamp(20px,2.2vw,27px);font-weight:650;letter-spacing:-.015em}
+.catalog-head p{color:var(--muted);font-size:12px;line-height:1.6;max-width:430px;text-align:right}
+.subject-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.subject-card{
+  --accent:#4fd1c5;
+  position:relative;display:flex;flex-direction:column;gap:12px;
+  min-height:236px;padding:20px 19px 17px;text-align:left;color:var(--ink);text-decoration:none;
+  border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(16,36,54,.82),rgba(7,18,29,.88));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 18px 40px rgba(0,0,0,.22);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.subject-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.55;
+}
+.subject-card::after{
+  content:"";position:absolute;width:180px;height:180px;right:-70px;top:-80px;border-radius:50%;
+  background:radial-gradient(circle,var(--accent),transparent 68%);opacity:.10;pointer-events:none;
+}
+.subject-card:hover,.subject-card:focus-visible{
+  transform:translateY(-3px);border-color:var(--accent);
+  box-shadow:0 24px 50px rgba(0,0,0,.32),0 0 0 1px rgba(255,255,255,.03) inset;
+  outline:none;
+}
+.subject-icon{
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;flex:none;
+  color:var(--accent);border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.035);
+  box-shadow:0 0 22px rgba(0,0,0,.2) inset;
+}
+.subject-icon svg{width:26px;height:26px}
+.subject-card h3{font-size:16px;font-weight:680;letter-spacing:-.01em}
+.subject-card .tagline{color:var(--muted);font-size:11.5px;line-height:1.55;margin-top:-6px}
+.subject-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.subject-meta span{
+  font-family:var(--mono);font-size:9.5px;color:var(--dim);
+  border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:rgba(255,255,255,.02);
+}
+.subject-meta .count{color:var(--accent);border-color:rgba(255,255,255,.14)}
+.subject-cta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:3px}
+.subject-cta b{font-size:11px;font-weight:650;color:var(--accent);letter-spacing:.02em}
+.subject-cta em{font-style:normal;font-family:var(--mono);font-size:13px;color:var(--accent)}
+.home-note{
+  max-width:1460px;margin:16px auto 0;padding:0 26px;color:var(--dim);
+  font-size:11px;line-height:1.6;
+}
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;
+  border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);
+  color:var(--muted);font-size:11.5px;padding:6px 11px;transition:border-color .2s,color .2s;
+}
+.back-link:hover{border-color:var(--line2);color:var(--ink)}
+.subject-hero .hero-stats span{color:var(--muted)}
+.subject-hero .hero-stats b{color:inherit}
+
+footer{
+  border-top:1px solid var(--line);margin-top:26px;padding:20px 26px 30px;
+}
+.footer-inner{
+  max-width:1460px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 24px;
+  justify-content:space-between;color:var(--dim);font-size:11px;
+}
+.footer-inner b{color:var(--muted);font-weight:600}
+noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px solid #552020;border-radius:12px;margin:20px}
+
+/* responsive */
+@media (max-width:1120px){
+  .lab-body{grid-template-columns:1fr}
+  .stage-wrap{position:relative;top:0}
+  .ref-grid{grid-template-columns:1fr}
+  .subject-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:720px){
+  .shell,.topbar-inner,.hero,.tabs,.lab,.reference{padding-left:16px;padding-right:16px}
+  .topbar-inner{padding-top:10px;padding-bottom:10px}
+  .brand p{display:none}
+  .brand .credit{font-size:8.5px;letter-spacing:0;margin-top:2px}
+  .top-metas{gap:7px}
+  .chip{display:none}
+  .student input{width:118px}
+  .hero{padding-top:28px}
+  .hero p{font-size:12.5px}
+  .hero-stats span:nth-child(4){display:none}
+  .lab{padding-top:16px}
+  .lab-head{margin-bottom:15px}
+  .card{padding:13px}
+  .big-result b{font-size:21px}
+  .unit-list{grid-template-columns:1fr}
+  .readout{font-size:11.5px}
+  .readout b{font-size:11.5px}
+  .catalog{padding:22px 16px 6px}
+  .catalog-head{display:block}
+  .catalog-head p{text-align:left;margin-top:6px}
+  .subject-grid{grid-template-columns:1fr}
+  .subject-card{min-height:0}
+  .home-note{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#home" id="brand-home" aria-label="Bosh sahifa">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M13 5h6M14.4 5v7.3l-5.2 9.8a2.5 2.5 0 0 0 2.2 3.7h9.2a2.5 2.5 0 0 0 2.2-3.7l-5.2-9.8V5" stroke="#6fe4d7" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M11.2 19.2h9.6" stroke="#9fe9ff" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="14.4" cy="22.2" r="1.05" fill="#9fe9ff"/>
+          <circle cx="18" cy="20.8" r=".8" fill="#9fe9ff"/>
+        </svg>
+      </div>
+      <div>
+        <h1>LABORATORIYA</h1>
+        <p>Virtual fanlar · 7 yo‘nalish</p>
+        <span class="credit">© Xayrullox Hamidxonov ishi</span>
+      </div>
+    </a>
+    <div class="top-metas">
+      <button class="chip nav-chip" type="button" id="nav-home">Fanlar</button>
+      <span class="chip"><i></i>g = 9,81 m/s²</span>
+      <label class="student">Talaba
+        <input id="student-name" type="text" placeholder="F.I.Sh. (hisobot uchun)" maxlength="60" autocomplete="off">
+      </label>
+    </div>
+  </div>
+</header>
+
+<div class="view active" id="home-view">
+  <section class="hero home-hero">
+    <div class="kicker">Interaktiv ta’lim platformasi</div>
+    <h2>Fanlarni laboratoriya orqali o‘rganing</h2>
+    <p>Har bir yo‘nalishda haqiqiy jihozlar chizilgan jonli tajriba, slayderlar va avtomatik hisob-kitob bor. Fan kartochkasini tanlang — laboratoriya shu sahifada ochiladi.</p>
+    <div class="hero-stats">
+      <span><b>7</b> fan</span>
+      <span><b>12</b> laboratoriya</span>
+      <span><b>SI</b> birliklar</span>
+      <span><b>TXT</b> hisobot</span>
+    </div>
+  </section>
+  <main>
+    <section class="catalog">
+      <div class="catalog-head">
+        <div>
+          <div class="eyebrow">Fanlar katalogi</div>
+          <h2>Qaysi fandan boshlaymiz?</h2>
+        </div>
+        <p>Har bir laboratoriyada jarayon animatsiyada ko‘rsatiladi, qiymatlar esa raqam va birliklar bilan avtomatik hisoblanadi.</p>
+      </div>
+      <div class="subject-grid" id="subject-grid"></div>
+    </section>
+    <p class="home-note">Barcha laboratoriyalar brauzerda, internetga ulanmasdan ham ishlaydi. Hisobot talaba ismi va sana bilan .txt fayl sifatida yuklab olinadi.</p>
+  </main>
+</div>
+
+<div class="view" id="hydro-view">
+<section class="hero">
+  <button class="back-link" type="button" data-home>← Barcha fanlar</button>
+  <div class="kicker">Gidrostatika · 6 ta laboratoriya</div>
+  <h2>Suyuqlik bosimi, suzish va oqimni jonli kuzating</h2>
+  <p>Har bir ishda laboratoriya jihozlari chizilgan. Slayderlarni suring, porshenni bosing yoki menzurkani ko‘taring — jarayon animatsiyada ko‘rsatiladi, barcha qiymatlar esa formula bo‘yicha avtomatik hisoblanib, raqam va birliklar bilan chiqadi.</p>
+  <div class="hero-stats">
+    <span><b>6</b> laboratoriya ishi</span>
+    <span><b>SI</b> birliklar</span>
+    <span><b>9,81</b> m/s²</span>
+    <span><b>TXT</b> hisobot</span>
+  </div>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Laboratoriya ishlari">
+  <button class="tab active" id="tab1" role="tab" aria-selected="true" aria-controls="lab1" data-lab="1"><span class="num">01</span>Bosim va chuqurlik</button>
+  <button class="tab" id="tab2" role="tab" aria-selected="false" aria-controls="lab2" data-lab="2"><span class="num">02</span>Gidravlik press</button>
+  <button class="tab" id="tab3" role="tab" aria-selected="false" aria-controls="lab3" data-lab="3"><span class="num">03</span>Arximed kuchi</button>
+  <button class="tab" id="tab4" role="tab" aria-selected="false" aria-controls="lab4" data-lab="4"><span class="num">04</span>Torricelli qonuni</button>
+  <button class="tab" id="tab5" role="tab" aria-selected="false" aria-controls="lab5" data-lab="5"><span class="num">05</span>Zichlikni aniqlash</button>
+  <button class="tab" id="tab6" role="tab" aria-selected="false" aria-controls="lab6" data-lab="6"><span class="num">06</span>Quvur torayishi</button>
+</nav>
+
+<main>
+  <!-- ================= 1 ================= -->
+  <section class="lab active" id="lab1" role="tabpanel" aria-labelledby="tab1">
+    <div class="lab-head">
+      <div class="eyebrow">1-laboratoriya · Gidrostatik bosim</div>
+      <h2>Suyuqlik bosimi chuqurlikka qanday bog‘liq?</h2>
+      <p class="goal">Maqsad: turli suyuqliklarda chuqurlik ortishi bilan gidrostatik bosim qanday o‘zgarishini kuzatish va <b>p = ρgh</b> formulasini tekshirish.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas1" aria-label="Suyuqlik bosimi va chuqurlik animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Shaffof idish</li>
+            <li>O‘lchov chizg‘ichi</li>
+            <li>Bosim datchigi</li>
+            <li>Bosim o‘lchagich</li>
+            <li>Suyuqlik namunalari</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l1-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Datchik chuqurligi, h</span><output id="l1-h-out">0,80 m</output></div>
+            <input id="l1-h" type="range" min="0.05" max="1.5" step="0.01" value="0.80">
+          </div>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="big-result"><b id="l1-big">7,85 kPa</b><small>gidrostatik bosim</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l1-rho">1000</b><span class="unit">kg/m³</span></td></tr>
+              <tr><td>Chuqurlik, h</td><td><b id="l1-h-val">0,80</b><span class="unit">m</span></td></tr>
+              <tr><td>Erkin tushish tezlanishi, g</td><td><b>9,81</b><span class="unit">m/s²</span></td></tr>
+              <tr class="accent"><td>Bosim, p</td><td><b id="l1-p-pa">7 848</b><span class="unit">Pa</span></td></tr>
+              <tr><td>Bosim, p</td><td><b id="l1-p-kpa">7,85</b><span class="unit">kPa</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l1-calc"></div>
+          <p class="hint">Ko‘rsatilgan bosim — ortiqcha bosim: atmosfera bosimi hisobga olinmagan.</p>
+          <button class="btn primary report-btn" data-report="1">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= 2 ================= -->
+  <section class="lab" id="lab2" role="tabpanel" aria-labelledby="tab2">
+    <div class="lab-head">
+      <div class="eyebrow">2-laboratoriya · Paskal qonuni</div>
+      <h2>Gidravlik press qanday kuch yutug‘i beradi?</h2>
+      <p class="goal">Maqsad: kichik porshenga berilgan kuch katta porshenda necha marta kuchayishini aniqlash va <b>F₂/F₁ = A₂/A₁</b> qonunini tekshirish.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas2" aria-label="Gidravlik press animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Gidravlik press modeli</li>
+            <li>Kichik porshen</li>
+            <li>Katta porshen</li>
+            <li>Yuk</li>
+            <li>Bosim o‘lchagich</li>
+            <li>Chizg‘ich</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Kichik porshenga kuch, F₁</span><output id="l2-f1-out">100 N</output></div>
+            <input id="l2-f1" type="range" min="10" max="500" step="5" value="100">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Kichik porshen diametri, d₁</span><output id="l2-d1-out">6,0 sm</output></div>
+            <input id="l2-d1" type="range" min="3" max="10" step="0.5" value="6">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Katta porshen diametri, d₂</span><output id="l2-d2-out">18 sm</output></div>
+            <input id="l2-d2" type="range" min="10" max="30" step="1" value="18">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Kichik porshen yo‘li, s₁</span><output id="l2-s1-out">6,0 sm</output></div>
+            <input id="l2-s1" type="range" min="0" max="15" step="0.5" value="6">
+          </div>
+          <button class="btn primary wide" id="l2-press">Porshenni bosish</button>
+          <p class="hint">Tugma kichik porshenni <b>15 sm</b> pastga bosadi va katta porshenning ko‘tarilishini ko‘rsatadi.</p>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="big-result"><b id="l2-big">900 N</b><small>katta porshendagi kuch, F₂</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Kichik porshen yuzasi, A₁</td><td><b id="l2-a1">28,3</b><span class="unit">sm²</span></td></tr>
+              <tr><td>Katta porshen yuzasi, A₂</td><td><b id="l2-a2">254,5</b><span class="unit">sm²</span></td></tr>
+              <tr class="accent"><td>Bosim, p</td><td><b id="l2-p">35,4</b><span class="unit">kPa</span></td></tr>
+              <tr class="accent"><td>Katta porshendagi kuch, F₂</td><td><b id="l2-f2">900</b><span class="unit">N</span></td></tr>
+              <tr><td>Kuch yutug‘i, K</td><td><b id="l2-k">9,0</b><span class="unit">marta</span></td></tr>
+              <tr><td>Katta porshen yo‘li, s₂</td><td><b id="l2-s2">0,67</b><span class="unit">sm</span></td></tr>
+              <tr><td>Bajarilgan ish, W</td><td><b id="l2-work">6,0</b><span class="unit">J</span></td></tr>
+              <tr><td>Ko‘tarilgan massa</td><td><b id="l2-mass">91,7</b><span class="unit">kg</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l2-calc"></div>
+          <p class="hint">Paskal qonuni: yopiq suyuqlikka berilgan bosim uning barcha nuqtalariga bir xil uzatiladi.</p>
+          <button class="btn primary report-btn" data-report="2">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= 3 ================= -->
+  <section class="lab" id="lab3" role="tabpanel" aria-labelledby="tab3">
+    <div class="lab-head">
+      <div class="eyebrow">3-laboratoriya · Arximed kuchi</div>
+      <h2>Jism suzadimi yoki cho‘kadimi?</h2>
+      <p class="goal">Maqsad: Arximed kuchini o‘lchash, jismning suzish va cho‘kish shartlarini aniqlash hamda botgan qism ulushini hisoblash.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas3" aria-label="Arximed kuchi animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Menzurka, S = 200 sm²</li>
+            <li>Jism namunalari</li>
+            <li>Suyuqlik</li>
+            <li>Shtativ va ushlagich</li>
+            <li>O‘lchov chizg‘ichi</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Jism materiali</span></div>
+            <select id="l3-solid">
+              <option value="wood">Qarag‘ay yog‘ochi — 600 kg/m³</option>
+              <option value="ice">Muz — 917 kg/m³</option>
+              <option value="abs">Plastik (ABS) — 1050 kg/m³</option>
+              <option value="alu">Alyuminiy — 2700 kg/m³</option>
+              <option value="glass">Shisha — 2500 kg/m³</option>
+              <option value="iron">Temir — 7800 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l3-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Botish darajasi</span><output id="l3-f-out">50 %</output></div>
+            <input id="l3-f" type="range" min="0" max="100" step="1" value="50">
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="l3-release">Qo‘yib yuborish</button>
+            <button class="btn" id="l3-hold">Ushlab turish</button>
+          </div>
+          <p class="hint">Slayder jismni <b>qo‘lda</b> cho‘ktiradi. «Qo‘yib yuborish» tugmasi muvozanat holatini ko‘rsatadi.</p>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="state-banner ok" id="l3-state">Suzadi</div>
+          <div class="big-result"><b id="l3-big">9,81 N</b><small>to‘liq botgandagi Arximed kuchi</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Jism zichligi, ρ<sub>j</sub></td><td><b id="l3-rho-s">600</b><span class="unit">kg/m³</span></td></tr>
+              <tr><td>Suyuqlik zichligi, ρ<sub>s</sub></td><td><b id="l3-rho-l">1000</b><span class="unit">kg/m³</span></td></tr>
+              <tr><td>Jism hajmi, V</td><td><b id="l3-v">1,000</b><span class="unit">L</span></td></tr>
+              <tr><td>Jism massasi, m</td><td><b id="l3-m">0,600</b><span class="unit">kg</span></td></tr>
+              <tr class="accent"><td>Jism og‘irligi, P</td><td><b id="l3-p">5,89</b><span class="unit">N</span></td></tr>
+              <tr class="accent"><td>Hozirgi Arximed kuchi, F<sub>A</sub></td><td><b id="l3-fa">4,91</b><span class="unit">N</span></td></tr>
+              <tr><td>To‘liq botganda, F<sub>A</sub></td><td><b id="l3-fa-full">9,81</b><span class="unit">N</span></td></tr>
+              <tr><td>Botgan hajm, V<sub>bot</sub></td><td><b id="l3-vsub">500</b><span class="unit">mL</span></td></tr>
+              <tr><td>Sath ko‘tarilishi, Δh</td><td><b id="l3-dh">2,5</b><span class="unit">sm</span></td></tr>
+              <tr><td>Muvozanat botish ulushi</td><td><b id="l3-feq">60</b><span class="unit">%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l3-calc"></div>
+          <p class="hint">Suzish sharti: <b>ρ<sub>j</sub> &lt; ρ<sub>s</sub></b>. Muvozanatda botgan qism ulushi ρ<sub>j</sub>/ρ<sub>s</sub> ga teng.</p>
+          <button class="btn primary report-btn" data-report="3">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= 4 ================= -->
+  <section class="lab" id="lab4" role="tabpanel" aria-labelledby="tab4">
+    <div class="lab-head">
+      <div class="eyebrow">4-laboratoriya · Torricelli qonuni</div>
+      <h2>Teshikdan oqayotgan suyuqlik tezligi nimaga bog‘liq?</h2>
+      <p class="goal">Maqsad: suv sathi balandligi ortishi bilan oqim tezligi va sarf qanday o‘zgarishini kuzatish hamda <b>v = √(2gH)</b> formulasini tekshirish.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas4" aria-label="Torricelli qonuni animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Teshikli idish</li>
+            <li>O‘lchov chizg‘ichi</li>
+            <li>Sekundomer</li>
+            <li>O‘lchov vannasi, 2 L</li>
+            <li>Suv</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Suv sathi balandligi, H</span><output id="l4-h-out">0,80 m</output></div>
+            <input id="l4-h" type="range" min="0.2" max="1.2" step="0.02" value="0.80">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Teshik diametri, d</span><output id="l4-d-out">6,0 mm</output></div>
+            <input id="l4-d" type="range" min="2" max="10" step="0.5" value="6">
+          </div>
+          <button class="btn wide" id="l4-reset">Sekundomerni tiklash</button>
+          <p class="hint">Sekundomer laboratoriya ochiq turganda ishlaydi. Vana 2 L to‘lganda avtomatik to‘xtaydi.</p>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="big-result"><b id="l4-big">3,96 m/s</b><small>teshikdan oqish tezligi, v</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Suv sathi, H</td><td><b id="l4-h-val">0,80</b><span class="unit">m</span></td></tr>
+              <tr><td>Teshik diametri, d</td><td><b id="l4-d-val">6,0</b><span class="unit">mm</span></td></tr>
+              <tr><td>Teshik yuzasi, A</td><td><b id="l4-a-mm">28,3</b><span class="unit">mm²</span></td></tr>
+              <tr><td>Teshik yuzasi, A</td><td><b id="l4-a-m">2,83·10⁻⁵</b><span class="unit">m²</span></td></tr>
+              <tr class="accent"><td>Oqim tezligi, v</td><td><b id="l4-v">3,96</b><span class="unit">m/s</span></td></tr>
+              <tr><td>Sarf, Q</td><td><b id="l4-q">0,112</b><span class="unit">L/s</span></td></tr>
+              <tr><td>Sarf, Q</td><td><b id="l4-qmin">6,7</b><span class="unit">L/min</span></td></tr>
+              <tr><td>1 L to‘lish vaqti</td><td><b id="l4-t1">8,9</b><span class="unit">s</span></td></tr>
+              <tr><td>Oqim masofasi, x</td><td><b id="l4-range">1,83</b><span class="unit">m</span></td></tr>
+              <tr><td>O‘tgan vaqt, t</td><td><b id="l4-time">0,0</b><span class="unit">s</span></td></tr>
+              <tr class="accent"><td>Yig‘ilgan hajm, V</td><td><b id="l4-vol">0,00</b><span class="unit">L</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l4-calc"></div>
+          <button class="btn primary report-btn" data-report="4">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= 5 ================= -->
+  <section class="lab" id="lab5" role="tabpanel" aria-labelledby="tab5">
+    <div class="lab-head">
+      <div class="eyebrow">5-laboratoriya · Zichlikni aniqlash</div>
+      <h2>Jism zichligini Arximed usulida topish</h2>
+      <p class="goal">Maqsad: dinamometr yordamida jismning havodagi va suyuqlikdagi og‘irligini o‘lchab, uning zichligini hisoblash. O‘lchov xatoligini baholash.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas5" aria-label="Zichlikni aniqlash animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Dinamometr 0–30 N</li>
+            <li>Menzurka</li>
+            <li>Laboratoriya elevatori</li>
+            <li>Metall silindrlar</li>
+            <li>Suyuqlik</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Jism materiali</span></div>
+            <select id="l5-solid">
+              <option value="alu">Alyuminiy — 2700 kg/m³</option>
+              <option value="glass">Shisha — 2500 kg/m³</option>
+              <option value="iron">Temir — 7800 kg/m³</option>
+              <option value="copper">Mis — 8900 kg/m³</option>
+              <option value="lead">Qo‘rg‘oshin — 11300 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l5-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Jism hajmi, V</span><output id="l5-v-out">100 sm³</output></div>
+            <input id="l5-v" type="range" min="50" max="250" step="10" value="100">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Menzurkani ko‘tarish</span><output id="l5-imm-out">0 %</output></div>
+            <input id="l5-imm" type="range" min="0" max="100" step="1" value="0">
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="l5-full">To‘liq cho‘ktirish</button>
+            <button class="btn" id="l5-out">Suvdan chiqarish</button>
+          </div>
+          <p class="hint">Dinamometrning bo‘linishi <b>0,05 N</b>. Shu sabab o‘lchangan zichlikda kichik xatolik ko‘rinadi.</p>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="big-result"><b id="l5-big">2650 kg/m³</b><small>o‘lchangan zichlik</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Jadvaldagi zichlik, ρ<sub>j</sub></td><td><b id="l5-rho-j">2700</b><span class="unit">kg/m³</span></td></tr>
+              <tr><td>Jism hajmi, V</td><td><b id="l5-v-val">100</b><span class="unit">sm³</span></td></tr>
+              <tr><td>Havodagi og‘irlik, P₁</td><td><b id="l5-p1">2,65</b><span class="unit">N</span></td></tr>
+              <tr class="accent"><td>Suyuqlikdagi og‘irlik, P₂</td><td><b id="l5-p2">1,65</b><span class="unit">N</span></td></tr>
+              <tr class="accent"><td>Arximed kuchi, F<sub>A</sub></td><td><b id="l5-fa">1,00</b><span class="unit">N</span></td></tr>
+              <tr><td>O‘lchangan hajm, V<sub>o‘lch</sub></td><td><b id="l5-vm">102</b><span class="unit">sm³</span></td></tr>
+              <tr class="accent"><td>O‘lchangan zichlik, ρ<sub>o‘lch</sub></td><td><b id="l5-rho-m">2650</b><span class="unit">kg/m³</span></td></tr>
+              <tr><td>Nisbiy xatolik, δ</td><td><b id="l5-err">−1,9</b><span class="unit">%</span></td></tr>
+              <tr><td>Hozirgi ko‘rsatish, P</td><td><b id="l5-cur">2,65</b><span class="unit">N</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l5-calc"></div>
+          <p class="hint">ρ = P₁/(P₁ − P₂) · ρ<sub>s</sub>. Bu yerda P₁ — havodagi, P₂ — to‘liq botgandagi ko‘rsatish.</p>
+          <button class="btn primary report-btn" data-report="5">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="lab" id="lab6" role="tabpanel" aria-labelledby="tab6">
+    <div class="lab-head">
+      <div class="eyebrow">6-laboratoriya · Bernulli va Venturi</div>
+      <h2>Quvur toraysa suyuqlik tezligi va bosimi qanday o‘zgaradi?</h2>
+      <p class="goal">Maqsad: quvurning toraygan va kengaygan qismlarida oqim tezligi hamda bosimini kuzatish, uzluksizlik va Bernulli tenglamalarini amalda tekshirish.</p>
+    </div>
+    <div class="lab-body">
+      <div class="stage-wrap">
+        <canvas id="canvas6" aria-label="Quvur torayishi va kengayishi animatsiyasi"></canvas>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Jihozlar</h3>
+          <ul class="eq-list">
+            <li>Venturi quvuri</li>
+            <li>Nasos</li>
+            <li>Sarf o‘lchagich</li>
+            <li>2 ta pezometr</li>
+            <li>Suyuqlik</li>
+            <li>Chizg‘ich</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l6-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Hajmiy sarf, Q</span><output id="l6-q-out">8,0 L/s</output></div>
+            <input id="l6-q" type="range" min="4" max="10" step="0.5" value="8">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Keng qism diametri, d₁</span><output id="l6-d1-out">120 mm</output></div>
+            <input id="l6-d1" type="range" min="100" max="140" step="5" value="120">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Toraygan qism diametri, d₂</span><output id="l6-d2-out">50 mm</output></div>
+            <input id="l6-d2" type="range" min="40" max="80" step="5" value="50">
+          </div>
+          <p class="hint">d₂ har doim d₁ dan kamida <b>20 mm</b> kichik bo‘ladi — torayish sharti saqlanadi. Keng qismdagi bosim p₁ = <b>40 kPa</b>.</p>
+        </div>
+        <div class="card">
+          <h3>O‘lchov natijalari</h3>
+          <div class="big-result"><b id="l6-big">4,07 m/s</b><small>toraygan qismdagi tezlik</small></div>
+          <table class="readout">
+            <tbody>
+              <tr><td>Keng qism diametri, d₁</td><td><b id="l6-d1">120</b><span class="unit">mm</span></td></tr>
+              <tr><td>Toraygan qism diametri, d₂</td><td><b id="l6-d2">50</b><span class="unit">mm</span></td></tr>
+              <tr><td>Keng qism yuzasi, A₁</td><td><b id="l6-a1">113,1</b><span class="unit">sm²</span></td></tr>
+              <tr><td>Toraygan qism yuzasi, A₂</td><td><b id="l6-a2">19,6</b><span class="unit">sm²</span></td></tr>
+              <tr><td>Hajmiy sarf, Q</td><td><b id="l6-q">8,0</b><span class="unit">L/s</span></td></tr>
+              <tr><td>Keng qismda tezlik, v₁</td><td><b id="l6-v1">0,71</b><span class="unit">m/s</span></td></tr>
+              <tr class="accent"><td>Toraygan qismda tezlik, v₂</td><td><b id="l6-v2">4,07</b><span class="unit">m/s</span></td></tr>
+              <tr><td>Tezlik nisbati, v₂/v₁</td><td><b id="l6-k">5,76</b><span class="unit">marta</span></td></tr>
+              <tr><td>Keng qismda bosim, p₁</td><td><b id="l6-p1">40,0</b><span class="unit">kPa</span></td></tr>
+              <tr class="accent"><td>Toraygan qismda bosim, p₂</td><td><b id="l6-p2">31,9</b><span class="unit">kPa</span></td></tr>
+              <tr class="accent"><td>Bosim farqi, Δp</td><td><b id="l6-dp">8,1</b><span class="unit">kPa</span></td></tr>
+              <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l6-rho">1000</b><span class="unit">kg/m³</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Hisoblash</h3>
+          <div class="calc-box" id="l6-calc"></div>
+          <p class="hint">Uzluksizlik: A₁v₁ = A₂v₂. Bernulli: p₁ + ½ρv₁² = p₂ + ½ρv₂². Gorizontal quvur uchun balandliklar teng.</p>
+          <button class="btn primary report-btn" data-report="6">Hisobotni yuklab olish (.txt)</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<section class="reference" id="malumotnoma">
+  <div class="section-head">
+    <div class="eyebrow">Ma’lumotnoma</div>
+    <h2>Formulalar, zichliklar va birliklar</h2>
+  </div>
+  <div class="ref-grid">
+    <div class="card ref-card">
+      <h3>Asosiy formulalar</h3>
+      <ul class="formula-list">
+        <li><span>Gidrostatik bosim</span><code>p = ρgh</code></li>
+        <li><span>Bosim kuchi</span><code>F = pA</code></li>
+        <li><span>Paskal qonuni (press)</span><code>F₂/F₁ = A₂/A₁</code></li>
+        <li><span>Arximed kuchi</span><code>F<sub>A</sub> = ρ<sub>s</sub>gV<sub>bot</sub></code></li>
+        <li><span>Suzish sharti</span><code>ρ<sub>j</sub> &lt; ρ<sub>s</sub></code></li>
+        <li><span>Torricelli tezligi</span><code>v = √(2gH)</code></li>
+        <li><span>Hajmiy sarf</span><code>Q = Av</code></li>
+        <li><span>Uzluksizlik tenglamasi</span><code>A₁v₁ = A₂v₂</code></li>
+        <li><span>Bernulli tenglamasi</span><code>p + ½ρv² + ρgh = const</code></li>
+        <li><span>Zichlik</span><code>ρ = m/V</code></li>
+      </ul>
+    </div>
+    <div class="card ref-card">
+      <h3>Suyuqliklar zichligi (20 °C)</h3>
+      <table class="ref-table">
+        <thead><tr><th>Suyuqlik</th><th>ρ, kg/m³</th></tr></thead>
+        <tbody>
+          <tr><td>Suv</td><td>1000</td></tr>
+          <tr><td>Dengiz suvi</td><td>1030</td></tr>
+          <tr><td>Spirt (etanol)</td><td>800</td></tr>
+          <tr><td>O‘simlik yog‘i</td><td>920</td></tr>
+          <tr><td>Gliserin</td><td>1260</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card ref-card">
+      <h3>Qattiq jismlar zichligi</h3>
+      <table class="ref-table">
+        <thead><tr><th>Material</th><th>ρ, kg/m³</th></tr></thead>
+        <tbody>
+          <tr><td>Qarag‘ay yog‘ochi</td><td>600</td></tr>
+          <tr><td>Muz</td><td>917</td></tr>
+          <tr><td>Plastik (ABS)</td><td>1050</td></tr>
+          <tr><td>Shisha</td><td>2500</td></tr>
+          <tr><td>Alyuminiy</td><td>2700</td></tr>
+          <tr><td>Temir</td><td>7800</td></tr>
+          <tr><td>Mis</td><td>8900</td></tr>
+          <tr><td>Qo‘rg‘oshin</td><td>11300</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card ref-card">
+      <h3>Birliklar va doimiylar</h3>
+      <ul class="unit-list">
+        <li><span>Erkin tushish tezlanishi</span><code>g = 9,81 m/s²</code></li>
+        <li><span>1 kPa</span><code>10³ Pa</code></li>
+        <li><span>1 MPa</span><code>10⁶ Pa</code></li>
+        <li><span>1 L</span><code>10⁻³ m³</code></li>
+        <li><span>1 sm²</span><code>10⁻⁴ m²</code></li>
+        <li><span>1 mm²</span><code>10⁻⁶ m²</code></li>
+        <li><span>1 atm</span><code>≈ 101,3 kPa</code></li>
+        <li><span>1 N/sm²</span><code>10 kPa</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="view" id="subject-view">
+  <section class="hero subject-hero">
+    <button class="back-link" type="button" data-home>← Barcha fanlar</button>
+    <div class="kicker" id="subject-kicker"></div>
+    <h2 id="subject-title"></h2>
+    <p id="subject-goal"></p>
+    <div class="hero-stats" id="subject-stats"></div>
+  </section>
+  <main>
+    <section class="lab active" id="subject-lab">
+      <div class="lab-body">
+        <div class="stage-wrap">
+          <canvas id="subject-canvas" aria-label="Fan laboratoriyasi animatsiyasi"></canvas>
+        </div>
+        <aside class="side">
+          <div class="card">
+            <h3>Jihozlar</h3>
+            <ul class="eq-list" id="subject-equipment"></ul>
+          </div>
+          <div class="card">
+            <h3>Boshqarish</h3>
+            <div id="subject-controls"></div>
+          </div>
+          <div class="card">
+            <h3>O‘lchov natijalari</h3>
+            <div class="big-result"><b id="subject-big">—</b><small id="subject-big-label"></small></div>
+            <table class="readout"><tbody id="subject-readout"></tbody></table>
+          </div>
+          <div class="card">
+            <h3>Hisoblash</h3>
+            <div class="calc-box" id="subject-calc"></div>
+            <p class="hint" id="subject-hint"></p>
+            <button class="btn primary report-btn" type="button" id="subject-report">Hisobotni yuklab olish (.txt)</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span><b>Virtual laboratoriya.</b> Barcha hisoblar SI birliklarida, g = 9,81 m/s² asosida.</span>
+    <span>7 fan · 12 ish · animatsiyalar · hisobot</span>
+  </div>
+</footer>
+
+<noscript>Bu dastur ishlashi uchun brauzerda JavaScript yoqilgan bo‘lishi kerak.</noscript>
+<script src="app.js"></script>
+<script src="subjects.js"></script>
+</body>
+</html>
