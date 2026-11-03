@@ -2288,6 +2288,12 @@ function buildReport(r) {
   lines.push("Ishdan maqsad: " + r.goal);
   lines.push("Jihozlar: " + r.equipment);
   lines.push("");
+  if (r.steps && r.steps.length) {
+    lines.push("BAJARISH TARTIBI");
+    lines.push("-".repeat(56));
+    r.steps.forEach((s, i) => lines.push((i + 1) + ". " + s));
+    lines.push("");
+  }
   lines.push("O‘LCHOV VA HISOBLASH NATIJALARI");
   lines.push("-".repeat(56));
   r.rows.forEach(row => lines.push("• " + row[0] + ": " + row[1]));

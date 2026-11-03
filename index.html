@@ -385,6 +385,29 @@ select:focus{border-color:rgba(79,209,197,.55)}
 .subject-hero .hero-stats span{color:var(--muted)}
 .subject-hero .hero-stats b{color:inherit}
 
+/* ---------- subject lab tabs & notes ---------- */
+.lab-tabs{
+  display:flex;flex-wrap:wrap;gap:8px;
+  max-width:1460px;margin:14px auto 0;padding:0 26px;
+}
+.lab-tab{
+  display:inline-flex;align-items:center;
+  border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.022);color:var(--muted);
+  padding:8px 14px;font-size:12px;font-weight:550;
+  transition:border-color .2s,background .2s,color .2s;
+}
+.lab-tab:hover{border-color:var(--line2);color:var(--ink);background:rgba(255,255,255,.04)}
+.lab-tab.active{
+  color:#fff6f2;border-color:rgba(255,138,107,.5);
+  background:linear-gradient(135deg,rgba(255,138,107,.16),rgba(245,184,75,.08));
+}
+.lab-notes{max-width:1460px;margin:0 auto;padding:6px 26px 40px}
+.notes-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+.notes-grid ol{margin:10px 0 0 18px;color:var(--muted);font-size:12px;line-height:1.75}
+.notes-grid li{padding-left:4px}
+.notes-grid li::marker{color:var(--teal);font-family:var(--mono);font-size:11px}
+
 footer{
   border-top:1px solid var(--line);margin-top:26px;padding:20px 26px 30px;
 }
@@ -401,9 +424,10 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
   .stage-wrap{position:relative;top:0}
   .ref-grid{grid-template-columns:1fr}
   .subject-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .notes-grid{grid-template-columns:1fr}
 }
 @media (max-width:720px){
-  .shell,.topbar-inner,.hero,.tabs,.lab,.reference{padding-left:16px;padding-right:16px}
+  .shell,.topbar-inner,.hero,.tabs,.lab,.reference,.lab-tabs,.lab-notes{padding-left:16px;padding-right:16px}
   .topbar-inner{padding-top:10px;padding-bottom:10px}
   .brand p{display:none}
   .brand .credit{font-size:8.5px;letter-spacing:0;margin-top:2px}
@@ -469,7 +493,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
     <p>Har bir yo‘nalishda haqiqiy jihozlar chizilgan jonli tajriba, slayderlar va avtomatik hisob-kitob bor. Fan kartochkasini tanlang — laboratoriya shu sahifada ochiladi.</p>
     <div class="hero-stats">
       <span><b>7</b> fan</span>
-      <span><b>12</b> laboratoriya</span>
+      <span><b>13</b> laboratoriya</span>
       <span><b>SI</b> birliklar</span>
       <span><b>TXT</b> hisobot</span>
     </div>
@@ -1027,6 +1051,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
     <p id="subject-goal"></p>
     <div class="hero-stats" id="subject-stats"></div>
   </section>
+  <div class="lab-tabs" id="subject-lab-tabs" hidden></div>
   <main>
     <section class="lab active" id="subject-lab">
       <div class="lab-body">
@@ -1056,13 +1081,25 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
         </aside>
       </div>
     </section>
+    <section class="lab-notes" id="subject-notes" hidden>
+      <div class="notes-grid">
+        <div class="card">
+          <h3>Bajarish tartibi</h3>
+          <ol id="subject-steps"></ol>
+        </div>
+        <div class="card">
+          <h3>Nazorat savollari</h3>
+          <ol id="subject-questions"></ol>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 <footer>
   <div class="footer-inner">
     <span><b>Virtual laboratoriya.</b> Barcha hisoblar SI birliklarida, g = 9,81 m/s² asosida.</span>
-    <span>7 fan · 12 ish · animatsiyalar · hisobot</span>
+    <span>7 fan · 13 ish · animatsiyalar · hisobot</span>
   </div>
 </footer>
 

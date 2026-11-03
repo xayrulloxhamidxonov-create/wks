@@ -21,6 +21,64 @@ const METALS = {
   steel: { name: "Po‘lat",    tm: 1450, B: 95, color: "#aeb8c8" }
 };
 
+const PROD_TYPES = {
+  yakka: {
+    name: "Yakka", batch: "1–10 dona", blank: "Prokat (oddiy)", work: "Universal stanok 16K20",
+    delta: 4, end: 5, base: 42, tpz: 30, n: 1, color: "#ff8a6b"
+  },
+  seriyali: {
+    name: "Seriyali", batch: "11–1000 dona", blank: "Shtampovka yoki prokat", work: "CNC stanok 16K20F3",
+    delta: 3, end: 4, base: 14, tpz: 25, n: 200, color: "#f5b84b"
+  },
+  ommaviy: {
+    name: "Ommaviy", batch: "1000 dan ortiq", blank: "Shtampovka (aniq)", work: "Avtomatik liniya",
+    delta: 2, end: 3, base: 4.5, tpz: 20, n: 5000, color: "#5ee08a"
+  }
+};
+
+const ROUTES = {
+  yakka: [
+    { n: "I", name: "Tokarlik", eq: "16K20", surf: "1–4 sirtlar", note: "qo‘pol yo‘nish" },
+    { n: "II", name: "Tokarlik", eq: "16K20", surf: "5–8 sirtlar", note: "toza yo‘nish" },
+    { n: "III", name: "Frezalash", eq: "6R81", surf: "9–10 sirtlar", note: "shponka o‘yig‘i" },
+    { n: "IV", name: "Charxlash", eq: "3M131", surf: "2, 4, 7", note: "silliqlash" },
+    { n: "V", name: "Nazorat", eq: "Shtangensirkul", surf: "barcha o‘lchamlar", note: "o‘lchash" }
+  ],
+  seriyali: [
+    { n: "I", name: "Tokarlik (CNC)", eq: "16K20F3", surf: "1–4 sirtlar", note: "qo‘pol yo‘nish" },
+    { n: "II", name: "Tokarlik (CNC)", eq: "16K20F3", surf: "5–8 sirtlar", note: "toza yo‘nish" },
+    { n: "III", name: "Frezalash", eq: "6R81", surf: "9–10 sirtlar", note: "shponka o‘yig‘i" },
+    { n: "IV", name: "Charxlash", eq: "3M131", surf: "2, 4, 7", note: "silliqlash" },
+    { n: "V", name: "Markalash", eq: "Markalash asbobi", surf: "partiya raqami", note: "belgilash" },
+    { n: "VI", name: "Nazorat", eq: "Kalibr va shtangensirkul", surf: "tanlab o‘lchash", note: "nazorat" }
+  ],
+  ommaviy: [
+    { n: "I", name: "Shtamplash", eq: "Krishko-press", surf: "zagotovka", note: "shakl berish" },
+    { n: "II", name: "Tokarlik (avtomat)", eq: "1B240", surf: "1–4 sirtlar", note: "qo‘pol yo‘nish" },
+    { n: "III", name: "Tokarlik (avtomat)", eq: "1B240", surf: "5–8 sirtlar", note: "toza yo‘nish" },
+    { n: "IV", name: "Frezalash (agregat)", eq: "Agregat stanok", surf: "9–10 sirtlar", note: "shponka o‘yig‘i" },
+    { n: "V", name: "Charxlash (avtomat)", eq: "3M131", surf: "2, 4, 7", note: "silliqlash" },
+    { n: "VI", name: "Yuvish", eq: "Yuvish mashinasi", surf: "butun detal", note: "tozalash" },
+    { n: "VII", name: "Nazorat (avtomat)", eq: "O‘lchov stansiyasi", surf: "barcha o‘lchamlar", note: "nazorat" },
+    { n: "VIII", name: "Qadoqlash", eq: "Qadoqlash liniyasi", surf: "tayyor detal", note: "jo‘natish" }
+  ]
+};
+
+function techData(s) {
+  const T = PROD_TYPES[s.type] || PROD_TYPES.yakka;
+  const N = Math.max(1, Math.round(s.N));
+  const k = Math.pow(s.D / 60, 1.15) * Math.pow(s.L / 240, 0.55);
+  const tDona = T.base * k;
+  const Tbatch = (T.tpz + N * tDona) / 60;
+  const takt = N > 1 ? 28800 / N : null;
+  const Dz = s.D + 2 * T.delta;
+  const Lz = s.L + 2 * T.end;
+  const mzag = Math.PI / 4 * Dz * Dz * Lz * 7.85e-6;
+  const mdet = Math.PI / 4 * s.D * s.D * s.L * 7.85e-6;
+  const waste = (mzag - mdet) / mzag * 100;
+  return { T, N, k, tDona, Tbatch, takt, Dz, Lz, mzag, mdet, waste, route: ROUTES[s.type] || ROUTES.yakka };
+}
+
 const ICONS = {
   drop: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M16 4.5c4.2 5.5 8.3 9.4 8.3 14.4a8.3 8.3 0 1 1-16.6 0C7.7 13.9 11.8 10 16 4.5Z"/><path d="M10.4 20.6c1.7 2.2 3.5 3.2 5.6 3.2 1.4 0 2.8-.5 4.1-1.6" stroke-linecap="round"/></svg>',
   atom: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="16" cy="16" r="2.3" fill="currentColor" stroke="none"/><ellipse cx="16" cy="16" rx="11.5" ry="4.6"/><ellipse cx="16" cy="16" rx="11.5" ry="4.6" transform="rotate(60 16 16)"/><ellipse cx="16" cy="16" rx="11.5" ry="4.6" transform="rotate(120 16 16)"/></svg>',
@@ -37,9 +95,13 @@ const CARDS = [
   { key: "astronomiya", name: "Astronomiya", tagline: "Sayyoralar orbitalari va Kepler uchinchi qonuni.", count: "1 ish", tags: ["Kepler", "orbita", "TXT"], accent: "#b28dff", icon: ICONS.orbit },
   { key: "ekologiya", name: "Ekologiya", tagline: "Suvni filtrlash va ifloslanishni kamaytirish.", count: "1 ish", tags: ["filtr", "suv", "TXT"], accent: "#5ee08a", icon: ICONS.leaf },
   { key: "quymakorlik", name: "Quymakorlik", tagline: "Quyish harorati va qotish vaqtini hisoblash.", count: "1 ish", tags: ["metall", "qolip", "TXT"], accent: "#f5b84b", icon: ICONS.crucible },
-  { key: "mashinasozlik", name: "Mashinasozlik", tagline: "Tishli uzatma: aylanish tezligi va moment.", count: "1 ish", tags: ["uzatma", "moment", "TXT"], accent: "#ff8a6b", icon: ICONS.gear },
+  { key: "mashinasozlik", name: "Mashinasozlik", tagline: "Texnologik jarayon strukturasi va tishli uzatma.", count: "2 ish", tags: ["texnologiya", "uzatma", "TXT"], accent: "#ff8a6b", icon: ICONS.gear },
   { key: "nazariy", name: "Nazariy mexanika", tagline: "Qiyshiq tekislikda ishqalanish va tezlanish.", count: "1 ish", tags: ["dinamika", "kuchlar", "TXT"], accent: "#f58ac2", icon: ICONS.incline }
 ];
+
+const SUBJECT_LABS = {
+  mashinasozlik: ["mashinasozlik-tex", "mashinasozlik-gear"]
+};
 
 /* ============================================================
    FAN LABORATORIYALARI
@@ -226,8 +288,10 @@ const defs = {
     draw: drawCasting
   },
 
-  mashinasozlik: {
+  "mashinasozlik-gear": {
     name: "Mashinasozlik",
+    subject: "mashinasozlik",
+    labLabel: "2-ish · Tishli uzatma",
     kicker: "Mashinasozlik · detallar va uzatmalar",
     title: "Tishli uzatma aylanishni qanday o‘zgartiradi?",
     goal: "Maqsad: yetakchi va yetaklanuvchi tishli g‘ildiraklar soni orqali uzatish sonini, chiqish tezligini va momentni hisoblash.",
@@ -272,6 +336,107 @@ const defs = {
       };
     },
     draw: drawGears
+  },
+
+  "mashinasozlik-tex": {
+    name: "Mashinasozlik",
+    subject: "mashinasozlik",
+    labLabel: "1-ish · Texnologik jarayon",
+    kicker: "Mashinasozlik · 1-laboratoriya",
+    title: "Pog‘anali valga texnologik jarayon qanday tuziladi?",
+    goal: "Maqsad: texnologik jarayon tuzilishiga ishlab chiqarish turining ta’sirini o‘rganish va pog‘anali val uchun yakka, seriyali hamda ommaviy sharoitda texnologik marshrut tuzish.",
+    accent: "#ff8a6b",
+    equipment: ["Pog‘anali val chizmasi", "Tokarlik stanogi 16K20", "Frezalash stanogi 6R81", "Charxlash stanogi 3M131", "Shtangensirkul", "Texnologik xarita"],
+    bigLabel: "donabay vaqt",
+    hint: "Yakka — prokat va universal stanok; seriyali — CNC va shtampovka; ommaviy — aniq shtampovka va avtomatik liniya. tдона = tб·(D/60)^1,15·(L/240)^0,55.",
+    controls: [
+      { id: "type", label: "Ishlab chiqarish turi", type: "select", value: "yakka", options: [
+        { value: "yakka", label: "Yakka (1–10 dona)" },
+        { value: "seriyali", label: "Seriyali (11–1000 dona)" },
+        { value: "ommaviy", label: "Ommaviy (1000+ dona)" }
+      ] },
+      { id: "D", label: "Val diametri, D", type: "range", min: 30, max: 120, step: 5, value: 60, unit: "mm", dec: 0 },
+      { id: "L", label: "Val uzunligi, L", type: "range", min: 100, max: 400, step: 10, value: 240, unit: "mm", dec: 0 },
+      { id: "N", label: "Partiya hajmi, N", type: "range", min: 1, max: 5000, step: 1, value: 1, unit: "dona", dec: 0 }
+    ],
+    state: { type: "yakka", D: 60, L: 240, N: 1 },
+    onChange(def, id) {
+      if (id !== "type") return;
+      const sel = document.querySelector('[data-control="type"]');
+      const t = PROD_TYPES[sel ? sel.value : def.state.type] || PROD_TYPES.yakka;
+      def.state.N = t.n;
+      const input = document.querySelector('[data-control="N"]');
+      if (input) input.value = t.n;
+    },
+    compute(s) {
+      const d = techData(s);
+      const T = d.T;
+      const altKey = s.type === "ommaviy" ? "yakka" : "ommaviy";
+      const altT = PROD_TYPES[altKey];
+      const alt = techData({ D: s.D, L: s.L, N: altT.n, type: altKey });
+      const rows = [
+        ["Ishlab chiqarish turi", T.name, ""],
+        ["Partiya hajmi, N", fmt(d.N, 0), "dona"],
+        ["Zagotovka turi", T.blank, ""],
+        ["Zagotovka diametri, Dzag", fmt(d.Dz, 0), "mm"],
+        ["Zagotovka uzunligi, Lzag", fmt(d.Lz, 0), "mm"],
+        ["Zagotovka massasi, mzag", fmt(d.mzag, 2), "kg"],
+        ["Detal massasi, mdet", fmt(d.mdet, 2), "kg"],
+        ["Chiqindi (qirqim), δm", fmt(d.waste, 1), "%"],
+        ["Operatsiyalar soni", fmt(d.route.length, 0), "ta", true],
+        ["Donabay vaqt, tdona", fmt(d.tDona, 1), "min", true],
+        ["Partiya vaqti, Tpartiya", fmt(d.Tbatch, 2), "soat"]
+      ];
+      if (d.takt) rows.push(["Ishlab chiqarish takti, τ", fmt(d.takt, 1), "s", true]);
+
+      return {
+        big: fmt(d.tDona, 1) + " min",
+        readout: rows,
+        calc: "Dzag = D + 2δ = " + fmt(s.D, 0) + " + 2·" + fmt(T.delta, 0) + " = " + fmt(d.Dz, 0) + " mm\n" +
+          "Lzag = L + 2·" + fmt(T.end, 0) + " = " + fmt(s.L, 0) + " + 2·" + fmt(T.end, 0) + " = " + fmt(d.Lz, 0) + " mm\n" +
+          "mzag = ρ·π/4·Dzag²·Lzag = 7,85·10⁻⁶ × " + fmt(d.Dz * d.Dz * d.Lz, 0) + " = " + fmt(d.mzag, 2) + " kg\n" +
+          "mdet = ρ·π/4·D²·L = 7,85·10⁻⁶ × " + fmt(s.D * s.D * s.L, 0) + " = " + fmt(d.mdet, 2) + " kg\n" +
+          "Chiqindi = (mzag − mdet)/mzag × 100 % = " + fmt(d.waste, 1) + " %\n\n" +
+          "tdona = tб·(D/60)^1,15·(L/240)^0,55\n" +
+          "tdona = " + fmt(T.base, 1) + " × " + fmt(d.k, 2) + " = " + fmt(d.tDona, 1) + " min\n" +
+          "Tpartiya = (Tпз + N·tdona)/60 = (" + fmt(T.tpz, 0) + " + " + fmt(d.N, 0) + "·" + fmt(d.tDona, 1) + ")/60 = " + fmt(d.Tbatch, 2) + " soat\n" +
+          (d.takt ? "τ = 480·60/N = 28800/" + fmt(d.N, 0) + " = " + fmt(d.takt, 1) + " s/dona\n" : "") +
+          "\nTexnologik marshrut:\n" +
+          d.route.map(o => "  " + o.n + " " + o.name + " — " + o.eq + " · " + o.surf + " (" + o.note + ")").join("\n"),
+        conclusion: T.name + " ishlab chiqarishda zagotovka — " + T.blank.toLowerCase() + ", marshrutda " + d.route.length + " ta operatsiya bor. " +
+          fmt(d.N, 0) + " dona partiya uchun " + fmt(d.Tbatch, 2) + " soat sarflanadi. " +
+          (s.type === "ommaviy"
+            ? "Taqqoslash uchun yakka sharoitda donabay vaqt " + fmt(alt.tDona, 1) + " min, chiqindi " + fmt(alt.waste, 1) + "% bo‘lardi."
+            : "Ommaviy sharoitga o‘tsa, donabay vaqt " + fmt(alt.tDona, 1) + " min, chiqindi " + fmt(alt.waste, 1) + "% bo‘ladi.")
+      };
+    },
+    steps: [
+      "Detal chizmasini o‘rganing.",
+      "Detal eskizini bajaring.",
+      "Chizmada detalni tayyorlash uchun zarur ma’lumotlar borligini tekshiring.",
+      "Ishlanuvchi sirtlarni raqamlar bilan belgilang.",
+      "Yakka ishlab chiqarish uchun texnologik yo‘nalish tuzing.",
+      "Taklif etilgan variantni o‘qituvchi bilan tasdiqlang.",
+      "Seriyali ishlab chiqarish uchun texnologik yo‘nalish tuzing.",
+      "Variantni o‘qituvchi bilan tasdiqlang.",
+      "Ommaviy ishlab chiqarish uchun texnologik yo‘nalish tuzing.",
+      "Variantni o‘qituvchi bilan tasdiqlang.",
+      "Har bir ishlab chiqarish turi uchun texnologik xaritani to‘ldiring.",
+      "Ishlab chiqarish miqyosiga qarab jarayon tuzilishi o‘zgarishi haqida xulosa chiqaring."
+    ],
+    questions: [
+      "Texnologik jarayon tushunchasini ta’riflab bering.",
+      "Texnologik jarayonning strukturaviy tuzilishi nimalarni o‘z ichiga oladi?",
+      "Texnologik operatsiyani izohlab bering.",
+      "Texnologik operatsiya qaysi tushunchalarni o‘z ichiga oladi?",
+      "O‘rnatish, holat, texnologik va yordamchi o‘tish, ishchi va yordamchi yurishlarni ta’riflab bering.",
+      "Zagotovka turining ishlab chiqarish turiga bog‘liqligi nimadan iborat?",
+      "Yakka ishlab chiqarishni qisqacha tavsiflang.",
+      "Seriyali ishlab chiqarishni qisqacha tavsiflang.",
+      "Ommaviy ishlab chiqarishni qisqacha tavsiflang.",
+      "Bu ishlab chiqarish turlari bir-biridan qanday farq qiladi?"
+    ],
+    draw: drawTechProcess
   },
 
   nazariy: {
@@ -909,6 +1074,244 @@ function drawGears(ctx, s, time) {
 }
 
 /* ============================================================
+   MASHINASOZLIK — texnologik jarayon strukturasi
+   ============================================================ */
+
+function drawTechProcess(ctx, s, time) {
+  const d = techData(s);
+  const T = d.T;
+  const accent = T.color;
+  subjectBg(ctx, "MASHINASOZLIK · 1-ISH", "Texnologik jarayon strukturasi", T.name + " ishlab chiqarish · N = " + fmt(d.N, 0) + " dona");
+
+  const cy = 300, xStart = 160, shaftW = 400;
+  const maxR = 24 + (s.D - 30) * 0.34;
+  const lens = [0.25, 0.17, 0.34, 0.24];
+  const rads = [0.78, 1, 0.86, 0.62];
+  const segs = [];
+  let px = xStart;
+  lens.forEach((f, i) => {
+    const w = shaftW * f;
+    const r = maxR * rads[i];
+    segs.push({ x: px, w, r });
+    px += w;
+  });
+  const shaftEnd = xStart + shaftW;
+
+  // to‘shama (bed)
+  rr(ctx, 50, 412, 578, 15, 5);
+  ctx.fillStyle = "rgba(22,46,63,.95)"; ctx.fill();
+  ctx.strokeStyle = "rgba(150,205,235,.26)"; ctx.lineWidth = 1; ctx.stroke();
+  rr(ctx, 74, 427, 26, 28, 3); ctx.fillStyle = "rgba(12,28,42,.95)"; ctx.fill();
+  rr(ctx, 526, 427, 26, 28, 3); ctx.fill();
+
+  // old qismi (headstock)
+  rr(ctx, 50, 250, 92, 162, 10);
+  ctx.fillStyle = "rgba(16,38,54,.96)"; ctx.fill();
+  ctx.strokeStyle = "rgba(150,205,235,.24)"; ctx.stroke();
+  text(ctx, "16K20", 96, 275, { size: 9, mono: true, align: "center", color: "rgba(160,200,220,.6)" });
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.arc(74 + i * 22, 396, 4, 0, TAU);
+    ctx.fillStyle = i === 0 ? hexA(accent, .9) : "rgba(120,160,180,.35)";
+    ctx.fill();
+  }
+
+  // orqa babka (tailstock)
+  rr(ctx, 570, 268, 48, 144, 8);
+  ctx.fillStyle = "rgba(16,38,54,.96)"; ctx.fill();
+  ctx.strokeStyle = "rgba(150,205,235,.22)"; ctx.stroke();
+  rr(ctx, 560, 282, 14, 118, 4);
+  ctx.fillStyle = "rgba(110,132,150,.82)"; ctx.fill();
+  ctx.strokeStyle = "rgba(200,222,238,.4)"; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(560, cy - 12); ctx.lineTo(548, cy); ctx.lineTo(560, cy + 12); ctx.closePath();
+  ctx.fillStyle = "rgba(190,208,222,.75)"; ctx.fill();
+
+  // val (pog‘anali)
+  segs.forEach((g, i) => {
+    const grad = ctx.createLinearGradient(0, cy - g.r, 0, cy + g.r);
+    grad.addColorStop(0, "#e2ebf5");
+    grad.addColorStop(0.45, "#a9bacb");
+    grad.addColorStop(1, "#58697a");
+    rr(ctx, g.x, cy - g.r, g.w, g.r * 2, 3);
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = "rgba(220,238,250,.55)"; ctx.lineWidth = 1; ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(g.x + 2, cy - g.r + 4);
+    ctx.lineTo(g.x + g.w - 2, cy - g.r + 4);
+    ctx.strokeStyle = "rgba(255,255,255,.28)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  });
+
+  // shponka o‘yig‘i
+  const s3 = segs[2];
+  const keyX = s3.x + s3.w * 0.5 - 34;
+  rr(ctx, keyX, cy - s3.r + 1, 68, 7, 3);
+  ctx.fillStyle = "rgba(20,40,55,.92)"; ctx.fill();
+  ctx.strokeStyle = "rgba(120,170,195,.5)"; ctx.stroke();
+
+  // o‘q chizig‘i
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath(); ctx.moveTo(xStart - 14, cy); ctx.lineTo(shaftEnd + 12, cy);
+  ctx.strokeStyle = "rgba(150,205,235,.4)"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.setLineDash([]);
+
+  // patron (chuck) aylanadi
+  const ang = time * 2.2;
+  ctx.beginPath(); ctx.arc(152, cy, 50, 0, TAU);
+  ctx.fillStyle = "rgba(26,48,64,.98)"; ctx.fill();
+  ctx.strokeStyle = hexA(accent, .55); ctx.lineWidth = 2; ctx.stroke();
+  for (let i = 0; i < 3; i++) {
+    const a = ang + i * TAU / 3;
+    ctx.save();
+    ctx.translate(152, cy);
+    ctx.rotate(a);
+    rr(ctx, -7, -50, 14, 18, 3);
+    ctx.fillStyle = "rgba(160,185,205,.85)"; ctx.fill();
+    ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(152, cy, 15, 0, TAU);
+  ctx.fillStyle = "#0a1a27"; ctx.fill();
+  ctx.strokeStyle = hexA(accent, .5); ctx.stroke();
+
+  // raqamlangan sirtlar
+  const surface = (x, y, num, tx, ty) => {
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y);
+    ctx.strokeStyle = "rgba(150,205,235,.35)"; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(tx, ty, 10, 0, TAU);
+    ctx.fillStyle = "rgba(8,20,32,.95)"; ctx.fill();
+    ctx.strokeStyle = hexA(accent, .6); ctx.stroke();
+    text(ctx, String(num), tx, ty + 3.5, { size: 9.5, mono: true, align: "center", color: "#ffd9cf" });
+  };
+  segs.forEach((g, i) => {
+    const mx = g.x + g.w / 2;
+    surface(mx, cy - g.r, i + 1, mx, cy - maxR - 38);
+    surface(mx, cy + g.r, i + 5, mx, cy + maxR + 42);
+  });
+  surface(keyX + 26, cy - s3.r + 4, 9, keyX + 54, cy - maxR - 12);
+  surface(keyX + 42, cy - s3.r + 4, 10, keyX + 88, cy - maxR - 12);
+
+  // kesuvchi asbob
+  const speed = s.type === "ommaviy" ? 1.5 : s.type === "seriyali" ? 0.85 : 0.42;
+  const travel = Math.sin(time * speed) * 0.5 + 0.5;
+  const toolX = xStart + 46 + travel * (shaftW - 92);
+  const seg = segs.find(g => toolX >= g.x && toolX <= g.x + g.w) || segs[1];
+  const toolY = cy - seg.r - 3;
+
+  ctx.strokeStyle = "rgba(150,205,235,.18)";
+  ctx.beginPath(); ctx.moveTo(64, 176); ctx.lineTo(640, 176); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toolX, 176); ctx.lineTo(toolX, 196);
+  ctx.strokeStyle = "rgba(150,205,235,.28)"; ctx.lineWidth = 2; ctx.stroke();
+  rr(ctx, toolX - 30, 182, 60, 20, 5);
+  ctx.fillStyle = "rgba(28,52,70,.98)"; ctx.fill();
+  ctx.strokeStyle = "rgba(180,215,235,.3)"; ctx.stroke();
+  const toolTop = Math.max(208, toolY - 46);
+  ctx.beginPath();
+  ctx.moveTo(toolX - 34, toolTop);
+  ctx.lineTo(toolX + 34, toolTop);
+  ctx.lineTo(toolX + 4, toolY);
+  ctx.lineTo(toolX - 4, toolY);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(190,210,225,.9)"; ctx.fill();
+  ctx.strokeStyle = "rgba(240,250,255,.7)"; ctx.stroke();
+
+  // uchqun va qirqim
+  for (let i = 0; i < 5; i++) {
+    const a = -0.6 - i * 0.32 + Math.sin(time * 9 + i) * 0.15;
+    const len = 12 + ((i * 7 + Math.floor(time * 10)) % 12);
+    ctx.beginPath();
+    ctx.moveTo(toolX, toolY);
+    ctx.lineTo(toolX + Math.cos(a) * len, toolY + Math.sin(a) * len);
+    ctx.strokeStyle = "rgba(255,190,120," + (0.75 - i * 0.12) + ")";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+  for (let i = 0; i < 4; i++) {
+    const t0 = (time * 1.6 + i * 0.23) % 1;
+    const yy = toolY + t0 * 54;
+    const xx = toolX + 10 + Math.sin(t0 * 7 + i) * 12;
+    ctx.beginPath();
+    ctx.arc(xx, yy, 2.2, 0, TAU);
+    ctx.fillStyle = "rgba(255,170,110," + (0.5 * (1 - t0)) + ")";
+    ctx.fill();
+  }
+
+  // o‘lchamlar
+  const dimY = cy + maxR + 28;
+  ctx.strokeStyle = "rgba(150,205,235,.45)";
+  ctx.beginPath(); ctx.moveTo(xStart, dimY); ctx.lineTo(shaftEnd, dimY); ctx.stroke();
+  for (const x of [xStart, shaftEnd]) {
+    ctx.beginPath(); ctx.moveTo(x, dimY - 7); ctx.lineTo(x, dimY + 7); ctx.stroke();
+  }
+  text(ctx, "L = " + fmt(s.L, 0) + " mm", (xStart + shaftEnd) / 2, dimY - 7, { size: 10.5, mono: true, align: "center", color: "rgba(220,238,248,.8)" });
+  text(ctx, "Ø" + fmt(s.D, 0) + " mm", 478, cy + 4, { size: 10.5, mono: true, align: "center", color: "rgba(235,246,252,.9)" });
+
+  // o‘ng panel
+  panel(ctx, 648, 104, 284, 328, accent);
+  text(ctx, "ISHLAB CHIQARISH TURI", 666, 130, { size: 9, color: "rgba(150,195,215,.65)" });
+  text(ctx, T.name + " · " + T.batch, 666, 150, { size: 15, color: "#fff1ec" });
+  ctx.beginPath(); ctx.moveTo(666, 162); ctx.lineTo(914, 162);
+  ctx.strokeStyle = "rgba(150,205,235,.14)"; ctx.stroke();
+
+  const rows = [
+    ["Zagotovka", T.blank],
+    ["Operatsiyalar", d.route.length + " ta"],
+    ["tdona", fmt(d.tDona, 1) + " min"],
+    ["Partiya", fmt(d.N, 0) + " dona"],
+    ["Tpartiya", fmt(d.Tbatch, 2) + " soat"],
+    ["Takt, τ", d.takt ? fmt(d.takt, 1) + " s" : "—"],
+    ["Chiqindi", fmt(d.waste, 1) + " %"]
+  ];
+  rows.forEach((r, i) => {
+    const y = 186 + i * 24;
+    text(ctx, r[0], 666, y, { size: 10, color: "rgba(160,190,210,.72)" });
+    text(ctx, r[1], 914, y, { size: 11.5, mono: true, align: "right", color: i === 2 ? "#ffd9cf" : "rgba(232,243,250,.92)" });
+  });
+
+  text(ctx, "STRUKTURA", 666, 372, { size: 9, color: "rgba(150,195,215,.6)" });
+  const chain = [["Jarayon", "Operatsiya"], ["O‘rnatish", "O‘tuv"]];
+  chain.forEach((line, row) => {
+    line.forEach((word, col) => {
+      const bx = 666 + col * 108, by = 382 + row * 26;
+      rr(ctx, bx, by, 96, 20, 5);
+      ctx.fillStyle = "rgba(255,138,107,.07)"; ctx.fill();
+      ctx.strokeStyle = "rgba(255,138,107,.26)"; ctx.stroke();
+      text(ctx, word, bx + 48, by + 14, { size: 9.5, align: "center", color: "rgba(255,220,210,.82)" });
+      if (col === 0) text(ctx, "›", bx + 100, by + 14, { size: 12, align: "center", color: "rgba(255,180,160,.7)" });
+    });
+  });
+
+  // marshrut
+  const route = d.route;
+  const n = route.length;
+  const rx0 = 46, rx1 = 914, ry = 472;
+  const step = (rx1 - rx0) / Math.max(1, n - 1);
+  const active = Math.floor(time / 1.5) % n;
+  ctx.beginPath(); ctx.moveTo(rx0, ry); ctx.lineTo(rx1, ry);
+  ctx.strokeStyle = "rgba(150,205,235,.22)"; ctx.lineWidth = 2; ctx.stroke();
+  text(ctx, "TEXNOLOGIK MARSHRUT", rx0, ry - 26, { size: 9, color: "rgba(150,195,215,.6)" });
+
+  route.forEach((o, i) => {
+    const x = rx0 + i * step;
+    const on = i === active;
+    ctx.beginPath(); ctx.arc(x, ry, 13, 0, TAU);
+    ctx.fillStyle = on ? hexA(accent, .22) : "rgba(8,20,32,.96)"; ctx.fill();
+    ctx.strokeStyle = on ? accent : "rgba(150,205,235,.32)";
+    ctx.lineWidth = on ? 2 : 1;
+    ctx.stroke();
+    text(ctx, o.n, x, ry + 4, { size: 9, mono: true, align: "center", color: on ? "#fff4ef" : "rgba(180,205,220,.7)" });
+    text(ctx, o.name, x, ry + 32, { size: 9.5, align: "center", color: on ? "rgba(255,225,215,.95)" : "rgba(160,190,210,.65)" });
+    if (i < n - 1) {
+      text(ctx, "→", x + step / 2, ry + 4, { size: 10, align: "center", color: "rgba(150,205,235,.28)" });
+    }
+  });
+
+  text(ctx, "Jarayon → operatsiya → o‘rnatish → o‘tuv · Tpartiya = (Tпз + N·tdona) / 60", 46, 528, { size: 10, color: "rgba(150,195,215,.55)" });
+}
+
+/* ============================================================
    NAZARIY MEXANIKA — qiyshiq tekislik
    ============================================================ */
 
@@ -1083,7 +1486,10 @@ function buildControls(def) {
       input.value = def.state[c.id] != null ? def.state[c.id] : c.value;
     }
     input.dataset.control = c.id;
-    input.addEventListener(c.type === "select" ? "change" : "input", () => updateSubject(def));
+    input.addEventListener(c.type === "select" ? "change" : "input", () => {
+      if (c.type === "select" && typeof def.onChange === "function") def.onChange(def, c.id);
+      updateSubject(def);
+    });
     wrap.appendChild(input);
     box.appendChild(wrap);
   });
@@ -1117,6 +1523,51 @@ function updateSubject(def) {
   }).join("");
 }
 
+function labSubjectKey(key) {
+  const def = defs[key];
+  return def && def.subject ? def.subject : key;
+}
+
+function labsOf(key) {
+  const subject = labSubjectKey(key);
+  return SUBJECT_LABS[subject] || [key];
+}
+
+function resolveLab(raw) {
+  if (defs[raw]) return raw;
+  if (SUBJECT_LABS[raw]) return SUBJECT_LABS[raw][0];
+  return null;
+}
+
+function renderLabTabs(key) {
+  const bar = $("subject-lab-tabs");
+  if (!bar) return;
+  const labs = labsOf(key);
+  if (labs.length < 2) {
+    bar.innerHTML = "";
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+  bar.innerHTML = labs.map(k => {
+    const d = defs[k];
+    return '<button type="button" class="lab-tab' + (k === key ? " active" : "") + '" data-lab="' + k + '">' + (d.labLabel || d.title) + "</button>";
+  }).join("");
+  bar.querySelectorAll("[data-lab]").forEach(btn => {
+    btn.addEventListener("click", () => { location.hash = btn.getAttribute("data-lab"); });
+  });
+}
+
+function renderSubjectNotes(def) {
+  const wrap = $("subject-notes");
+  if (!wrap) return;
+  const hasSteps = def.steps && def.steps.length;
+  wrap.hidden = !hasSteps;
+  if (!hasSteps) return;
+  $("subject-steps").innerHTML = def.steps.map(s => "<li>" + s + "</li>").join("");
+  $("subject-questions").innerHTML = (def.questions || []).map(q => "<li>" + q + "</li>").join("");
+}
+
 function mountSubject(key) {
   const def = defs[key];
   if (!def) return;
@@ -1126,11 +1577,13 @@ function mountSubject(key) {
   $("subject-goal").innerHTML = def.goal;
   $("subject-stats").innerHTML =
     "<span><b>" + def.equipment.length + "</b> jihoz</span>" +
-    "<span><b>1</b> laboratoriya</span>" +
+    "<span><b>" + labsOf(key).length + "</b> laboratoriya</span>" +
     "<span><b>SI</b> birliklar</span>" +
     "<span><b>TXT</b> hisobot</span>";
   $("subject-equipment").innerHTML = def.equipment.map(e => "<li>" + e + "</li>").join("");
   $("subject-canvas").setAttribute("aria-label", def.title);
+  renderLabTabs(key);
+  renderSubjectNotes(def);
   buildControls(def);
   updateSubject(def);
 }
@@ -1149,11 +1602,12 @@ function renderCards() {
 
 function showView(key) {
   const isHydro = key === "gidrostatika";
-  const isSubject = !!defs[key];
+  const labKey = resolveLab(key);
+  const isSubject = !!labKey;
   $("home-view").classList.toggle("active", !isHydro && !isSubject);
   $("hydro-view").classList.toggle("active", isHydro);
   $("subject-view").classList.toggle("active", isSubject);
-  if (isSubject) mountSubject(key);
+  if (isSubject) mountSubject(labKey);
   window.AppNav.set(isHydro ? "hydro" : isSubject ? "subject" : "home");
   window.scrollTo(0, 0);
 }
@@ -1168,7 +1622,7 @@ function route() {
     }, 60);
     return;
   }
-  if (raw === "gidrostatika" || defs[raw]) showView(raw);
+  if (raw === "gidrostatika" || defs[raw] || SUBJECT_LABS[raw]) showView(raw);
   else showView("home");
 }
 
@@ -1186,6 +1640,7 @@ $("subject-report").addEventListener("click", () => {
     title: def.name + ". " + def.title,
     goal: def.goal.replace(/<[^>]+>/g, "").replace(/^Maqsad:\s*/, ""),
     equipment: def.equipment.join(", "),
+    steps: def.steps || [],
     rows: def.out.readout.map(r => [r[0], r[1] + (r[2] ? " " + r[2] : "")]),
     calc: def.out.calc.split("\n"),
     conclusion: def.out.conclusion || ""
