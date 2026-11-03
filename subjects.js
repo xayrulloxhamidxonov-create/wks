@@ -86,7 +86,8 @@ const ICONS = {
   leaf: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 25C6 14 13 6 26 6c0 13-8 20-20 19Z"/><path d="M9 22c4-6 8-9 13-11" stroke-linecap="round"/></svg>',
   crucible: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M9 6h14l-2 13a5 5 0 0 1-10 0L9 6Z"/><path d="M8 10h16M13 25l-2 4M19 25l2 4" stroke-linecap="round"/><path d="M16 3c2 2-1 3 0 5" stroke-linecap="round"/></svg>',
   gear: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="16" cy="16" r="5.2"/><circle cx="16" cy="16" r="9.4" stroke-dasharray="2.2 2.6"/><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M25.2 6.8l-2.8 2.8M9.6 22.4l-2.8 2.8" stroke-linecap="round"/></svg>',
-  incline: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 26h22L5 9v17Z"/><rect x="9" y="12" width="6" height="4.5" rx="1" transform="rotate(31 12 14.2)"/><path d="M22 8v12M19 17l3 3 3-3" stroke-linecap="round"/></svg>'
+  incline: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 26h22L5 9v17Z"/><rect x="9" y="12" width="6" height="4.5" rx="1" transform="rotate(31 12 14.2)"/><path d="M22 8v12M19 17l3 3 3-3" stroke-linecap="round"/></svg>',
+  anatomy: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 28S6.4 22.3 6.4 15.4a5.2 5.2 0 0 1 9.6-2.7 5.2 5.2 0 0 1 9.6 2.7C25.6 22.3 16 28 16 28Z"/><path d="M2.5 15.6h5.3l1.7-3.5 2.6 7.1 2.2-4.9 1.9 3.3h13.3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 
 const CARDS = [
@@ -96,11 +97,13 @@ const CARDS = [
   { key: "ekologiya", name: "Ekologiya", tagline: "Suvni filtrlash va ifloslanishni kamaytirish.", count: "1 ish", tags: ["filtr", "suv", "TXT"], accent: "#5ee08a", icon: ICONS.leaf },
   { key: "quymakorlik", name: "Quymakorlik", tagline: "Quyish harorati va qotish vaqtini hisoblash.", count: "1 ish", tags: ["metall", "qolip", "TXT"], accent: "#f5b84b", icon: ICONS.crucible },
   { key: "mashinasozlik", name: "Mashinasozlik", tagline: "Texnologik jarayon strukturasi va tishli uzatma.", count: "2 ish", tags: ["texnologiya", "uzatma", "TXT"], accent: "#ff8a6b", icon: ICONS.gear },
+  { key: "anatomiya", name: "Odam anatomiyasi", tagline: "Yurak, miya, jigar va neyronlar ishlash prinsipi.", count: "4 ish", tags: ["organlar", "animatsiya", "TXT"], accent: "#ff7a9c", icon: ICONS.anatomy },
   { key: "nazariy", name: "Nazariy mexanika", tagline: "Qiyshiq tekislikda ishqalanish va tezlanish.", count: "1 ish", tags: ["dinamika", "kuchlar", "TXT"], accent: "#f58ac2", icon: ICONS.incline }
 ];
 
 const SUBJECT_LABS = {
-  mashinasozlik: ["mashinasozlik-tex", "mashinasozlik-gear"]
+  mashinasozlik: ["mashinasozlik-tex", "mashinasozlik-gear"],
+  anatomiya: ["anatomiya-yurak", "anatomiya-miya", "anatomiya-jigar", "anatomiya-neyron"]
 };
 
 /* ============================================================
@@ -493,6 +496,281 @@ const defs = {
       };
     },
     draw: drawIncline
+  },
+
+  "anatomiya-yurak": {
+    name: "Odam anatomiyasi",
+    subject: "anatomiya",
+    labLabel: "Yurak",
+    kicker: "Odam anatomiyasi · yurak-qon tomir tizimi",
+    title: "Yurak qonni qanday haydaydi?",
+    goal: "Maqsad: yurak siklini, sistola va diastola fazalarini kuzatish hamda <b>CO = HR · SV / 1000</b> formula bo‘yicha minutlik qon hajmini hisoblash.",
+    accent: "#ff7a9c",
+    equipment: ["Yurak anatomik modeli", "EKG monitori", "Tonometr", "Stetoskop", "Sekundomer", "O‘lchov jadvali"],
+    bigLabel: "minutlik hajm",
+    hint: "Yurak bir siklda o‘ng va chap qorinchadan bir xil hajmdagi qonni haydaydi. CO = HR × SV / 1000.",
+    controls: [
+      { id: "hr", label: "Yurak urishi, HR", type: "range", min: 45, max: 180, step: 1, value: 70, unit: "urish/min", dec: 0 },
+      { id: "sv", label: "Sistolik hajm, SV", type: "range", min: 40, max: 120, step: 5, value: 70, unit: "mL", dec: 0 }
+    ],
+    state: { hr: 70, sv: 70 },
+    compute(s) {
+      const co = s.hr * s.sv / 1000;
+      const T = 60 / s.hr;
+      const sys = T * 0.3;
+      const dia = T - sys;
+      const day = co * 1440;
+      const beatsDay = s.hr * 1440;
+      return {
+        big: fmt(co, 1) + " L/min",
+        readout: [
+          ["Yurak urishi, HR", fmt(s.hr, 0), "urish/min"],
+          ["Sistolik hajm, SV", fmt(s.sv, 0), "mL"],
+          ["Minutlik hajm, CO", fmt(co, 1), "L/min", true],
+          ["Bir sikl vaqti, T", fmt(T, 2), "s"],
+          ["Sistola", fmt(sys, 2), "s"],
+          ["Diastola", fmt(dia, 2), "s"],
+          ["Sutkalik haydalgan qon", fmt(day, 0), "L"],
+          ["Sutkalik urishlar", fmt(beatsDay, 0), "marta"]
+        ],
+        calc: "CO = HR · SV / 1000\n" +
+          "CO = " + fmt(s.hr, 0) + " × " + fmt(s.sv, 0) + " / 1000 = " + fmt(co, 1) + " L/min\n\n" +
+          "T = 60 / HR = 60 / " + fmt(s.hr, 0) + " = " + fmt(T, 2) + " s\n" +
+          "sistola ≈ 0,3·T = " + fmt(sys, 2) + " s\n" +
+          "diastola ≈ 0,7·T = " + fmt(dia, 2) + " s\n\n" +
+          "Sutkalik hajm = " + fmt(co, 1) + " × 1440 = " + fmt(day, 0) + " L",
+        conclusion: "HR = " + fmt(s.hr, 0) + " urish/min va SV = " + fmt(s.sv, 0) + " mL bo‘lganda yurak har minutda " + fmt(co, 1) + " L qon haydaydi. Bir sikl " + fmt(T, 2) + " s davom etib, shundan " + fmt(sys, 2) + " s sistola, " + fmt(dia, 2) + " s diastolaga to‘g‘ri keladi." +
+          (s.hr > 100 ? " Yurak tezlashganda diastola qisqaradi — yurak to‘lishga ulgurmaydi." : "")
+      };
+    },
+    steps: [
+      "Yurak urish tezligini 70 urish/min ga o‘rnating va animatsiyani kuzating.",
+      "Sistolik hajmni 70 mL da qoldirib, o‘ng bo‘lmachadan o‘ng qorinchaga qonning o‘tishini kuzating.",
+      "O‘ng qorinchadan o‘pka arteriyasiga, so‘ng o‘pkaga chiqayotgan qon oqimini kuzating.",
+      "Chap bo‘lmacha va chap qorinchadan aortaga chiqayotgan qon yo‘nalishini aniqlang.",
+      "HR ni 120 va 160 urish/min ga o‘zgartirib, minutlik hajm qanday o‘zgarishini yozib boring.",
+      "SV ni 50 va 100 mL ga o‘zgartirib, CO ni qayta hisoblang.",
+      "EKG grafigida P, QRS va T tishlarini toping.",
+      "Natijalarni jadvalga yozib, HR va SV ning CO ga ta’siri haqida xulosa chiqaring."
+    ],
+    questions: [
+      "Yurak bir minutda qancha qon haydaydi va bu ko‘rsatkich nimaga bog‘liq?",
+      "Sistola va diastola nima?",
+      "Kichik qon aylanish doirasi qanday yo‘l bosadi?",
+      "Katta qon aylanish doirasi qayerdan boshlanadi?",
+      "Nima uchun chap qorincha devori o‘ng qorinchadan qalinroq?",
+      "Yurak klapanlari qanday vazifani bajaradi?",
+      "Yurak urishi juda tezlashsa, qorinchalarning to‘lish vaqti nima bo‘ladi?"
+    ],
+    draw: drawAnatomyHeart
+  },
+
+  "anatomiya-miya": {
+    name: "Odam anatomiyasi",
+    subject: "anatomiya",
+    labLabel: "Miya",
+    kicker: "Odam anatomiyasi · markaziy asab tizimi",
+    title: "Miya faolligi EEGda qanday ko‘rinadi?",
+    goal: "Maqsad: miya faolligi ortishi bilan EEG chastotasi, neyron impulslari va kislorod sarfi qanday o‘zgarishini kuzatish.",
+    accent: "#ff9ec4",
+    equipment: ["Miya anatomik modeli", "EEG apparati", "Elektrodlar", "Kompyuter monitori", "Sekundomer", "Kuzatuv jadvali"],
+    bigLabel: "EEG chastotasi",
+    hint: "Faollik ortgan sari EEG chastotasi oshadi, amplituda esa pasayadi. Delta — uyqu, alfa — xotirjamlik, beta — diqqat.",
+    controls: [
+      { id: "a", label: "Miya faolligi, A", type: "range", min: 0, max: 100, step: 5, value: 55, unit: "%", dec: 0 }
+    ],
+    state: { a: 55 },
+    compute(s) {
+      const f = 2 + 0.28 * s.a;
+      const band = f < 4 ? "delta" : f < 8 ? "teta" : f < 13 ? "alfa" : f < 30 ? "beta" : "gamma";
+      const impulse = 5 + 0.45 * s.a;
+      const o2 = 3.3 + 1.7 * s.a / 100;
+      const cbf = 50 + 25 * s.a / 100;
+      const glucose = 90 + 0.6 * s.a;
+      return {
+        big: fmt(f, 1) + " Hz",
+        readout: [
+          ["Faollik darajasi, A", fmt(s.a, 0), "%"],
+          ["EEG chastotasi, f", fmt(f, 1), "Hz", true],
+          ["To‘lqin turi", band, ""],
+          ["Neyron impulslari", fmt(impulse, 1), "Hz"],
+          ["Kislorod sarfi", fmt(o2, 2), "mL/100g/min"],
+          ["Miya qon oqimi", fmt(cbf, 1), "mL/100g/min"],
+          ["Sutkalik glyukoza sarfi", fmt(glucose, 0), "g"],
+          ["Miyadagi neyronlar", "86", "mlrd"]
+        ],
+        calc: "f = 2 + 0,28 · A\n" +
+          "f = 2 + 0,28 × " + fmt(s.a, 0) + " = " + fmt(f, 1) + " Hz\n" +
+          "To‘lqin turi: " + band + " (" + (f < 4 ? "0,5–4" : f < 8 ? "4–8" : f < 13 ? "8–13" : f < 30 ? "13–30" : "30 dan yuqori") + " Hz)\n\n" +
+          "O₂ sarfi = 3,3 + 1,7·A/100 = " + fmt(o2, 2) + " mL/100g/min\n" +
+          "Qon oqimi = 50 + 25·A/100 = " + fmt(cbf, 1) + " mL/100g/min\n" +
+          "Neyron impulsi ≈ 5 + 0,45·A = " + fmt(impulse, 1) + " Hz",
+        conclusion: "Faollik " + fmt(s.a, 0) + "% bo‘lganda EEG chastotasi " + fmt(f, 1) + " Hz — bu " + band + " to‘lqini. " +
+          (f < 8 ? "Past chastotali to‘lqinlar dam olish va uyquga xos." : f < 13 ? "Alfa to‘lqini xotirjam hushyorlikni ko‘rsatadi." : f < 30 ? "Beta to‘lqini diqqat va faol fikrlashga mos." : "Gamma to‘lqini kuchli faollikda kuzatiladi.") +
+          " Faollik ortishi bilan kislorod sarfi " + fmt(o2, 2) + " mL/100g/min ga yetadi."
+      };
+    },
+    steps: [
+      "Faollikni 20% ga qo‘yib, EEG to‘lqinining past chastotali ekanini kuzating.",
+      "Faollikni 55% ga oshiring va to‘lqin chastotasi bilan amplitudasini yozib oling.",
+      "Faollikni 85% va 100% ga qo‘yib, beta va gamma to‘lqinlarini kuzating.",
+      "Har bir holatda kislorod sarfi va miya qon oqimi ko‘rsatkichlarini yozing.",
+      "Animatsiyada qaysi bo‘laklar (frontal, tepa, chakka, ensit, miyacha) faollashayotganini aniqlang.",
+      "Neyron impulslari chastotasini yozib, faollik bilan solishtiring.",
+      "Jadvalni to‘ldirib, faollik va kislorod sarfi orasidagi bog‘lanishni tushuntiring."
+    ],
+    questions: [
+      "Neyronlar qanday qo‘zg‘aladi va impulsni qanday uzatadi?",
+      "EEG nima va u nimani o‘lchaydi?",
+      "Delta, teta, alfa, beta va gamma to‘lqinlari bir-biridan qanday farq qiladi?",
+      "Miyaning qaysi bo‘limi harakatni boshqaradi?",
+      "Nima uchun miya kislorod yetishmasligiga juda sezgir?",
+      "Uyqu vaqtida miya faolligi qanday o‘zgaradi?",
+      "Miyelin qobig‘i shikastlansa, nerv impulsi tezligi nima bo‘ladi?"
+    ],
+    draw: drawAnatomyBrain
+  },
+
+  "anatomiya-jigar": {
+    name: "Odam anatomiyasi",
+    subject: "anatomiya",
+    labLabel: "Jigar",
+    kicker: "Odam anatomiyasi · hazm va detoksikatsiya",
+    title: "Jigar qonni qanday tozalaydi?",
+    goal: "Maqsad: jigar orqali o‘tayotgan qon hajmi va toksin miqdori o‘zgarishi bilan tozalash samarasi qanday o‘zgarishini aniqlash.",
+    accent: "#f5b84b",
+    equipment: ["Jigar anatomik modeli", "Ultratovush apparati", "Biokimyoviy analizator", "Infuzion sistema", "O‘lchov jadvali", "Sekundomer"],
+    bigLabel: "toksin yo‘qotish",
+    hint: "Jigar minutiga ~1,5 L qon qabul qiladi: 75% darvoza venasidan, 25% jigar arteriyasidan. Toksinlar jigar hujayralarida zararsizlantiriladi.",
+    controls: [
+      { id: "q", label: "Qon oqimi, Q", type: "range", min: 0.8, max: 1.8, step: 0.05, value: 1.5, unit: "L/min", dec: 2 },
+      { id: "c", label: "Toksin yuki, C", type: "range", min: 0, max: 100, step: 5, value: 30, unit: "mg/L", dec: 0 }
+    ],
+    state: { q: 1.5, c: 30 },
+    compute(s) {
+      const portal = s.q * 0.75;
+      const artery = s.q * 0.25;
+      const E = clamp(0.92 - s.c / 100 * 0.32, 0.45, 0.95);
+      const residual = s.c * (1 - E);
+      const detox = s.q * s.c * E;
+      const bile = 0.5 + 0.33 * s.q / 1.5;
+      return {
+        big: fmt(detox, 1) + " mg/min",
+        readout: [
+          ["Umumiy qon oqimi, Q", fmt(s.q, 2), "L/min"],
+          ["Darvoza venasi (75%)", fmt(portal, 2), "L/min"],
+          ["Jigar arteriyasi (25%)", fmt(artery, 2), "L/min"],
+          ["Kirish toksini, C", fmt(s.c, 0), "mg/L"],
+          ["Tozalash samarasi, E", fmt(E * 100, 0), "%", true],
+          ["Qoldiq toksin", fmt(residual, 1), "mg/L"],
+          ["Toksin yo‘qotish", fmt(detox, 1), "mg/min", true],
+          ["O‘t ishlab chiqarish", fmt(bile, 2), "L/sutka"]
+        ],
+        calc: "Qkirish = Q · 0,75 = " + fmt(s.q, 2) + " × 0,75 = " + fmt(portal, 2) + " L/min\n" +
+          "Qarteriya = Q · 0,25 = " + fmt(s.q, 2) + " × 0,25 = " + fmt(artery, 2) + " L/min\n\n" +
+          "E = 0,92 − 0,32 · C/100\n" +
+          "E = 0,92 − 0,32 × " + fmt(s.c, 0) + "/100 = " + fmt(E * 100, 0) + " %\n\n" +
+          "Qoldiq = C · (1 − E) = " + fmt(s.c, 0) + " × " + fmt(1 - E, 3) + " = " + fmt(residual, 1) + " mg/L\n" +
+          "Detoksikatsiya = Q · C · E = " + fmt(detox, 1) + " mg/min\n" +
+          "O‘t = 0,5 + 0,33·Q/1,5 = " + fmt(bile, 2) + " L/sutka",
+        conclusion: "Q = " + fmt(s.q, 2) + " L/min va C = " + fmt(s.c, 0) + " mg/L bo‘lganda jigar toksinning " + fmt(E * 100, 0) + "% ini ushlab qoladi. Qonda " + fmt(residual, 1) + " mg/L qoldiq qoladi, minutiga " + fmt(detox, 1) + " mg zahar zararsizlantiriladi." +
+          (s.c > 70 ? " Toksin yuki yuqori bo‘lganda tozalash samarasi pasayadi — jigar zo‘riqadi." : "")
+      };
+    },
+    steps: [
+      "Qon oqimini 1,5 L/min ga, toksin yukini 30 mg/L ga o‘rnating.",
+      "Animatsiyada darvoza venasi va jigar arteriyasidan kelayotgan qon oqimini kuzating.",
+      "Toksin yukini 20, 50 va 80 mg/L ga o‘zgartirib, tozalash foizini yozing.",
+      "Har bir holatda qoldiq toksin konsentratsiyasini hisoblang.",
+      "O‘t pufagi va o‘t yo‘li orqali o‘t chiqishini kuzating.",
+      "Qon oqimini 0,8 va 1,8 L/min ga o‘zgartirib, detoksikatsiya tezligini taqqoslang.",
+      "O‘t ishlab chiqarish hajmini sutkalik hisoblang.",
+      "Jadvalni to‘ldirib, qon oqimi va toksin yuki jigar ishiga qanday ta’sir qilishini tushuntiring."
+    ],
+    questions: [
+      "Jigarga qon qayerdan keladi?",
+      "Darvoza venasi va jigar arteriyasi orqali keladigan qon qanday farq qiladi?",
+      "Jigar qanday moddalarni zararsizlantiradi?",
+      "O‘t qayerda hosil bo‘ladi va qayerda saqlanadi?",
+      "Jigar qon shakarini qanday boshqaradi?",
+      "Jigar shikastlanganda qanday belgilar paydo bo‘ladi?",
+      "Nima uchun jigar «kimyoviy laboratoriya» deb ataladi?"
+    ],
+    draw: drawAnatomyLiver
+  },
+
+  "anatomiya-neyron": {
+    name: "Odam anatomiyasi",
+    subject: "anatomiya",
+    labLabel: "Neyronlar",
+    kicker: "Odam anatomiyasi · nerv impulsi",
+    title: "Nerv impulsi neyron bo‘ylab qanday o‘tadi?",
+    goal: "Maqsad: qo‘zg‘atish kuchi, miyelin qobig‘i va akson uzunligining nerv impulsi tezligi va o‘tkazish vaqtiga ta’sirini aniqlash.",
+    accent: "#7ee0c8",
+    equipment: ["Neyron modeli", "Mikroelektrod", "Ossillograf", "Stimulyator", "Mikroskop", "O‘lchov jadvali"],
+    bigLabel: "qo‘zg‘alish tezligi",
+    hint: "Tinchlik potensiali −70 mV, bo‘sag‘a −55 mV, pik +30 mV. Miyelinli akson impulsni 80–120 m/s tezlikda o‘tkazadi.",
+    controls: [
+      { id: "stim", label: "Qo‘zg‘atish kuchi, A", type: "range", min: 10, max: 100, step: 5, value: 60, unit: "%", dec: 0 },
+      { id: "L", label: "Akson uzunligi, L", type: "range", min: 5, max: 100, step: 5, value: 30, unit: "sm", dec: 0 },
+      { id: "myelin", label: "Miyelin qobig‘i", type: "select", value: "normal", options: [
+        { value: "normal", label: "Normal miyelin" },
+        { value: "shikast", label: "Shikastlangan (demyelinatsiya)" }
+      ] }
+    ],
+    state: { stim: 60, L: 30, myelin: "normal" },
+    compute(s) {
+      const vm = -70 + s.stim * 0.5;
+      const fires = vm >= -55;
+      const v = s.myelin === "normal" ? 90 : 5;
+      const t = s.L * 10 / v;
+      const freq = fires ? 5 + 0.45 * s.stim : 0;
+      return {
+        big: fmt(v, 0) + " m/s",
+        readout: [
+          ["Qo‘zg‘atish kuchi, A", fmt(s.stim, 0), "%"],
+          ["Membrana potensiali", fmt(vm, 0), "mV"],
+          ["Bo‘sag‘a potensiali", "−55", "mV"],
+          ["Holat", fires ? "impuls bor" : "bo‘sag‘a yetmadi", ""],
+          ["Miyelin qobig‘i", s.myelin === "normal" ? "normal" : "shikastlangan", ""],
+          ["Qo‘zg‘alish tezligi, v", fmt(v, 0), "m/s", true],
+          ["Akson uzunligi, L", fmt(s.L, 0), "sm"],
+          ["O‘tkazish vaqti, t", fires ? fmt(t, 1) : "—", fires ? "ms" : "", fires],
+          ["Sinaps kechikishi", "0,5", "ms"],
+          ["Impuls chastotasi", fires ? fmt(freq, 1) : "0", fires ? "Hz" : ""]
+        ],
+        calc: "Vm = −70 + 0,5 · A\n" +
+          "Vm = −70 + 0,5 × " + fmt(s.stim, 0) + " = " + fmt(vm, 0) + " mV\n" +
+          (fires ? "Vm ≥ −55 mV — bo‘sag‘a yetdi, impuls hosil bo‘ladi.\n\n" : "Vm < −55 mV — bo‘sag‘a yetmadi, impuls hosil bo‘lmaydi.\n\n") +
+          "v = " + fmt(v, 0) + " m/s (" + (s.myelin === "normal" ? "miyelinli akson" : "miyelinsiz akson") + ")\n" +
+          "t = L / v = " + fmt(s.L / 100, 2) + " m / " + fmt(v, 0) + " m/s = " + fmt(t, 1) + " ms\n" +
+          "f = 5 + 0,45·A = " + fmt(freq, 1) + " Hz",
+        conclusion: fires
+          ? "A = " + fmt(s.stim, 0) + "% da membrana potensiali " + fmt(vm, 0) + " mV ga yetib, bo‘sag‘adan o‘tadi. Impuls " + fmt(v, 0) + " m/s tezlikda " + fmt(s.L, 0) + " sm akson bo‘ylab " + fmt(t, 1) + " ms da o‘tadi." +
+            (s.myelin === "normal" ? " Miyelin qobig‘i tufayli impuls sakrab (saltator) tarqaladi." : " Miyelin shikastlangani uchun impuls juda sekin tarqaladi.")
+          : "A = " + fmt(s.stim, 0) + "% da potensial " + fmt(vm, 0) + " mV bo‘lib, −55 mV bo‘sag‘asiga yetmaydi — harakat potensiali hosil bo‘lmaydi."
+      };
+    },
+    steps: [
+      "Qo‘zg‘atish kuchini 30% ga qo‘ying — impuls hosil bo‘ladimi?",
+      "Kuchni 40% va 60% ga oshirib, membranalar potensiali va impuls holatini yozing.",
+      "Miyelin holatini «normal» va «shikastlangan» ga almashtirib, tezlikni taqqoslang.",
+      "Akson uzunligini 10 va 60 sm ga o‘zgartirib, o‘tkazish vaqtini hisoblang.",
+      "Potensial grafigida −70, −55 va +30 mV nuqtalarini toping.",
+      "Animatsiyada Ranvyer bo‘g‘inlari orqali impuls sakrashini kuzating.",
+      "Sinapsda neyrotransmitterlar ajralishi va postsinaptik membrananing qo‘zg‘alishini kuzating.",
+      "Jadvalni to‘ldirib, miyelin va uzunlikning impulsi tezligiga ta’siri haqida xulosa chiqaring."
+    ],
+    questions: [
+      "Neyronning qismlari va ularning vazifalari qanday?",
+      "Tinchlik potensiali nima va u qanday saqlanadi?",
+      "Harakat potensiali qanday hosil bo‘ladi?",
+      "Miyelin qobig‘i impuls tezligini nega oshiradi?",
+      "Ranvyer bo‘g‘inlari nima?",
+      "Sinapsda qo‘zg‘alish qanday uzatiladi?",
+      "Neyrotransmitterlar qanday vazifani bajaradi?"
+    ],
+    draw: drawAnatomyNeuron
   }
 };
 
@@ -1441,6 +1719,1075 @@ function drawIncline(ctx, s, time) {
 }
 
 /* ============================================================
+   ODAM ANATOMIYASI — yurak, miya, jigar, neyron
+   ============================================================ */
+
+function anatPolyPoint(pts, t) {
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  }
+  let d = clamp(t, 0, 1) * total;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (d <= len || i === pts.length - 1) {
+      const k = len ? d / len : 0;
+      return [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
+    }
+    d -= len;
+  }
+  return pts[0];
+}
+
+function anatGlowDot(ctx, x, y, r, color, a) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+  g.addColorStop(0, hexA(color, a == null ? .9 : a));
+  g.addColorStop(.4, hexA(color, .32));
+  g.addColorStop(1, hexA(color, 0));
+  ctx.beginPath();
+  ctx.arc(x, y, r * 3, 0, TAU);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, TAU);
+  ctx.fillStyle = "rgba(255,255,255,.92)";
+  ctx.fill();
+}
+
+function anatFlow(ctx, pts, phase, count, color, r) {
+  for (let i = 0; i < count; i++) {
+    const p = (phase + i / count) % 1;
+    const q = anatPolyPoint(pts, p);
+    anatGlowDot(ctx, q[0], q[1], r, color, .9);
+  }
+}
+
+function anatCurve(ctx, pts) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2;
+    const my = (pts[i][1] + pts[i + 1][1]) / 2;
+    ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+  }
+  const n = pts.length;
+  ctx.lineTo(pts[n - 1][0], pts[n - 1][1]);
+}
+
+function anatVessel(ctx, pts, w, color) {
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  anatCurve(ctx, pts);
+  ctx.strokeStyle = hexA(color, .20);
+  ctx.lineWidth = w + 8;
+  ctx.stroke();
+  anatCurve(ctx, pts);
+  ctx.strokeStyle = hexA(color, .78);
+  ctx.lineWidth = w;
+  ctx.stroke();
+  anatCurve(ctx, pts);
+  ctx.strokeStyle = "rgba(255,255,255,.14)";
+  ctx.lineWidth = Math.max(1, w * .22);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function anatTag(ctx, x, y, str, color, align, tx, ty) {
+  text(ctx, str, x, y, { size: 9.5, color: color, weight: 600, align: align || "left" });
+  if (tx != null) {
+    ctx.strokeStyle = hexA(color, .28);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 3);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(tx, ty, 2, 0, TAU);
+    ctx.fillStyle = hexA(color, .85);
+    ctx.fill();
+  }
+}
+
+function anatChamber(ctx, x, y, rx, ry, color, rot, k) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.scale(k, k * .97);
+  const g = ctx.createRadialGradient(-rx * .25, -ry * .3, 2, 0, 0, Math.max(rx, ry) * 1.2);
+  g.addColorStop(0, hexA(color, .62));
+  g.addColorStop(.6, hexA(color, .36));
+  g.addColorStop(1, hexA(color, .16));
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = hexA(color, .7);
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function anatHeartPath(ctx, cx, cy, k) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + 122 * k);
+  ctx.bezierCurveTo(cx - 42 * k, cy + 112 * k, cx - 102 * k, cy + 72 * k, cx - 108 * k, cy + 8 * k);
+  ctx.bezierCurveTo(cx - 114 * k, cy - 58 * k, cx - 78 * k, cy - 100 * k, cx - 40 * k, cy - 96 * k);
+  ctx.bezierCurveTo(cx - 16 * k, cy - 94 * k, cx - 4 * k, cy - 74 * k, cx, cy - 58 * k);
+  ctx.bezierCurveTo(cx + 6 * k, cy - 88 * k, cx + 42 * k, cy - 108 * k, cx + 76 * k, cy - 88 * k);
+  ctx.bezierCurveTo(cx + 112 * k, cy - 66 * k, cx + 118 * k, cy - 6 * k, cx + 100 * k, cy + 46 * k);
+  ctx.bezierCurveTo(cx + 82 * k, cy + 92 * k, cx + 42 * k, cy + 112 * k, cx, cy + 122 * k);
+  ctx.closePath();
+}
+
+function anatLung(ctx, x, y, dir) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(dir, 1);
+  ctx.beginPath();
+  ctx.moveTo(0, -95);
+  ctx.bezierCurveTo(-52, -72, -60, 30, -34, 86);
+  ctx.bezierCurveTo(-16, 118, 8, 96, 8, 48);
+  ctx.bezierCurveTo(8, -10, 14, -70, 0, -95);
+  ctx.closePath();
+  const g = ctx.createLinearGradient(-40, -90, 10, 90);
+  g.addColorStop(0, "rgba(90,169,255,.10)");
+  g.addColorStop(1, "rgba(90,169,255,.03)");
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(140,200,240,.22)";
+  ctx.lineWidth = 1.3;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(160,210,240,.20)";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(2, -55);
+  ctx.quadraticCurveTo(-8, -10, -6, 28);
+  ctx.stroke();
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(-6, -20);
+  ctx.quadraticCurveTo(-28, -2, -34, 20);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-6, 4);
+  ctx.quadraticCurveTo(-26, 26, -28, 48);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function anatEcg(p) {
+  const bump = (c, w, a) => a * Math.exp(-Math.pow((p - c) / w, 2));
+  return bump(.10, .022, .13) + bump(.22, .009, -.16) + bump(.245, .0085, 1) +
+    bump(.275, .013, -.30) + bump(.46, .040, .30);
+}
+
+function drawAnatomyHeart(ctx, s, time) {
+  subjectBg(ctx, "ODAM ANATOMIYASI", "Yurak — qon aylanish nasosi", "HR = " + fmt(s.hr, 0) + " · SV = " + fmt(s.sv, 0) + " mL");
+
+  const cx = 350, cy = 306;
+  const phase = (time * s.hr / 60) % 1;
+  const beat = Math.exp(-Math.pow((phase - .22) / .10, 2));
+  const atria = Math.exp(-Math.pow((phase - .88) / .055, 2));
+  const flow = (time * (0.22 + s.hr / 260)) % 1;
+  const co = s.hr * s.sv / 1000;
+  const T = 60 / s.hr;
+  const sys = T * .3;
+  const dia = T - sys;
+
+  const gl = ctx.createRadialGradient(cx, cy, 10, cx, cy, 250);
+  gl.addColorStop(0, "rgba(255,90,120,.13)");
+  gl.addColorStop(1, "rgba(255,90,120,0)");
+  ctx.fillStyle = gl;
+  ctx.fillRect(0, 0, CW, CH);
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(160,210,240,.065)";
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 6; i++) {
+    const ry = 178 + i * 38;
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, ry);
+    ctx.bezierCurveTo(cx - 70, ry - 6, cx - 130, ry + 24, cx - 148, ry + 62);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + 4, ry);
+    ctx.bezierCurveTo(cx + 70, ry - 6, cx + 130, ry + 24, cx + 148, ry + 62);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(160,210,240,.05)";
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(cx, 160);
+  ctx.lineTo(cx, 430);
+  ctx.stroke();
+  ctx.restore();
+
+  anatLung(ctx, cx - 175, cy - 18, 1);
+  anatLung(ctx, cx + 175, cy - 18, -1);
+  text(ctx, "o‘pka", cx - 175, cy + 112, { size: 8.5, align: "center", color: "rgba(150,200,230,.32)", weight: 600 });
+  text(ctx, "o‘pka", cx + 175, cy + 112, { size: 8.5, align: "center", color: "rgba(150,200,230,.32)", weight: 600 });
+
+  const svc = [[cx - 82, cy - 205], [cx - 76, cy - 130], [cx - 64, cy - 72], [cx - 52, cy - 34]];
+  const ivc = [[cx - 96, cy + 135], [cx - 82, cy + 70], [cx - 60, cy + 14]];
+  const pul = [[cx - 20, cy - 2], [cx - 16, cy - 52], [cx - 30, cy - 100]];
+  const pulL = [[cx - 30, cy - 100], [cx - 92, cy - 128], [cx - 150, cy - 120]];
+  const pulR = [[cx - 30, cy - 100], [cx + 15, cy - 145], [cx + 85, cy - 150], [cx + 140, cy - 120]];
+  const pvL = [[cx - 145, cy - 70], [cx - 75, cy - 45], [cx - 5, cy - 35]];
+  const pvR = [[cx + 145, cy - 70], [cx + 95, cy - 48], [cx + 60, cy - 38]];
+  const aor = [[cx + 36, cy - 2], [cx + 38, cy - 58], [cx + 34, cy - 112], [cx + 62, cy - 148], [cx + 102, cy - 150], [cx + 122, cy - 112], [cx + 124, cy - 30], [cx + 128, cy + 150]];
+
+  anatVessel(ctx, svc, 10, "#5aa9ff");
+  anatVessel(ctx, ivc, 10, "#5aa9ff");
+  anatVessel(ctx, pul, 10, "#5aa9ff");
+  anatVessel(ctx, pulL, 8, "#5aa9ff");
+  anatVessel(ctx, pulR, 8, "#5aa9ff");
+  anatVessel(ctx, pvL, 6, "#ff6b81");
+  anatVessel(ctx, pvR, 6, "#ff6b81");
+  anatVessel(ctx, aor, 13, "#ff6b81");
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1 + beat * .016, 1 + beat * .016);
+  ctx.translate(-cx, -cy);
+  anatHeartPath(ctx, cx, cy, 1);
+  const hg = ctx.createRadialGradient(cx - 35, cy - 45, 12, cx, cy, 175);
+  hg.addColorStop(0, "#a2364e");
+  hg.addColorStop(.55, "#6e1e30");
+  hg.addColorStop(1, "#45111d");
+  ctx.fillStyle = hg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,160,180,.5)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.save();
+  anatHeartPath(ctx, cx, cy, 1);
+  ctx.clip();
+  const vk = 1 - .09 * beat;
+  anatChamber(ctx, cx - 48, cy - 32, 28, 24, "#5aa9ff", -.18, 1 - .04 * atria);
+  anatChamber(ctx, cx - 22, cy + 36, 38, 44, "#5aa9ff", .06, vk);
+  anatChamber(ctx, cx + 42, cy - 35, 27, 23, "#ff6b81", .16, 1 - .04 * atria);
+  anatChamber(ctx, cx + 40, cy + 38, 37, 47, "#ff6b81", -.06, vk);
+  ctx.beginPath();
+  ctx.moveTo(cx + 6, cy - 70);
+  ctx.bezierCurveTo(cx + 1, cy - 20, cx + 4, cy + 34, cx + 11, cy + 92);
+  ctx.strokeStyle = "#43101d";
+  ctx.lineWidth = 7;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,150,175,.16)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(255,140,130,.32)";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(cx - 18, cy - 62);
+  ctx.bezierCurveTo(cx - 34, cy - 20, cx - 30, cy + 30, cx - 12, cy + 74);
+  ctx.stroke();
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 28, cy + 4);
+  ctx.bezierCurveTo(cx - 52, cy + 20, cx - 66, cy + 48, cx - 62, cy + 72);
+  ctx.moveTo(cx - 20, cy + 42);
+  ctx.bezierCurveTo(cx - 38, cy + 58, cx - 44, cy + 80, cx - 42, cy + 96);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + 6, cy - 60);
+  ctx.bezierCurveTo(cx + 34, cy - 30, cx + 44, cy + 10, cx + 40, cy + 52);
+  ctx.stroke();
+  ctx.restore();
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(245,250,255,.55)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx - 30, cy + 4, 8, .3, 2.2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + 31, cy + 2, 8, .9, 2.8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 26, cy - 58);
+  ctx.lineTo(cx - 12, cy - 50);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + 32, cy - 58);
+  ctx.lineTo(cx + 46, cy - 50);
+  ctx.stroke();
+
+  const blueFlow = [[cx - 82, cy - 205], [cx - 76, cy - 130], [cx - 64, cy - 72], [cx - 52, cy - 34], [cx - 44, cy - 4], [cx - 24, cy + 32], [cx - 18, cy - 4], [cx - 30, cy - 100], [cx - 92, cy - 128], [cx - 150, cy - 120]];
+  const redFlow = [[cx - 145, cy - 70], [cx - 75, cy - 45], [cx - 5, cy - 35], [cx + 42, cy - 35], [cx + 38, cy - 2], [cx + 40, cy + 38], [cx + 38, cy - 2], [cx + 34, cy - 112], [cx + 62, cy - 148], [cx + 102, cy - 150], [cx + 122, cy - 112], [cx + 128, cy + 150]];
+  anatFlow(ctx, blueFlow, flow, 6, "#5aa9ff", 2.3);
+  anatFlow(ctx, redFlow, flow, 6, "#ff6b81", 2.3);
+
+  anatTag(ctx, cx - 122, cy - 45, "O‘ng bo‘lmacha", "#8cc8ff", "right", cx - 62, cy - 36);
+  anatTag(ctx, cx - 122, cy + 64, "O‘ng qorincha", "#8cc8ff", "right", cx - 45, cy + 48);
+  anatTag(ctx, cx + 122, cy - 58, "Chap bo‘lmacha", "#ffb0b8", "left", cx + 60, cy - 38);
+  anatTag(ctx, cx + 122, cy + 92, "Chap qorincha", "#ffb0b8", "left", cx + 62, cy + 50);
+  anatTag(ctx, cx + 118, cy - 172, "Aorta", "#ffb0b8", "left", cx + 118, cy - 140);
+  anatTag(ctx, cx - 108, cy - 168, "O‘pka arteriyasi", "#8cc8ff", "right", cx - 55, cy - 125);
+
+  pill(ctx, 30, 458, "● kislorodsiz qon", { bg: "rgba(90,169,255,.08)", border: "rgba(90,169,255,.3)", color: "#9ccaff" });
+  pill(ctx, 200, 458, "● kislorodli qon", { bg: "rgba(255,107,129,.08)", border: "rgba(255,107,129,.3)", color: "#ffb3bf" });
+
+  panel(ctx, 660, 96, 276, 380, "#ff7a9c");
+  text(ctx, "EKG · II QO‘RG‘OSHIM", 678, 120, { size: 9.5, weight: 750, color: "rgba(255,185,200,.72)" });
+
+  const gx = 678, gy = 136, gw = 238, gh = 92;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(gx, gy, gw, gh);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(255,150,170,.055)";
+  ctx.lineWidth = 1;
+  for (let x = gx; x <= gx + gw; x += 10) {
+    ctx.beginPath();
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x, gy + gh);
+    ctx.stroke();
+  }
+  for (let y = gy; y <= gy + gh; y += 10) {
+    ctx.beginPath();
+    ctx.moveTo(gx, y);
+    ctx.lineTo(gx + gw, y);
+    ctx.stroke();
+  }
+  const base = gy + 60;
+  ctx.beginPath();
+  for (let i = 0; i <= gw; i++) {
+    const p = i / gw;
+    const y = base - anatEcg(p) * 36;
+    if (i === 0) ctx.moveTo(gx + i, y);
+    else ctx.lineTo(gx + i, y);
+  }
+  ctx.strokeStyle = "#ff9cae";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  const cxp = gx + gw * phase;
+  const cyp = base - anatEcg(phase) * 36;
+  ctx.setLineDash([3, 4]);
+  ctx.strokeStyle = "rgba(255,210,220,.5)";
+  ctx.beginPath();
+  ctx.moveTo(cxp, gy);
+  ctx.lineTo(cxp, gy + gh);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(cxp, cyp, 3.2, 0, TAU);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+  ctx.restore();
+
+  text(ctx, "P", gx + gw * .10, base - 14, { size: 8.5, align: "center", mono: true, color: "rgba(255,200,210,.6)" });
+  text(ctx, "QRS", gx + gw * .25, gy + 14, { size: 8.5, align: "center", mono: true, color: "rgba(255,200,210,.6)" });
+  text(ctx, "T", gx + gw * .46, base - 12 - anatEcg(.46) * 36, { size: 8.5, align: "center", mono: true, color: "rgba(255,200,210,.6)" });
+
+  text(ctx, "MINUTLIK HAJM, CO", 678, 258, { size: 9.5, weight: 750, color: "rgba(255,185,200,.62)" });
+  text(ctx, fmt(co, 1), 678, 292, { size: 30, mono: true, weight: 650, color: "#ffe4ea" });
+  text(ctx, "L/min", 752, 292, { size: 11, color: "rgba(255,190,205,.65)" });
+
+  const rows = [
+    ["Yurak urishi", fmt(s.hr, 0) + " urish/min"],
+    ["Sikl davri, T", fmt(T, 2) + " s"],
+    ["Sistola / diastola", fmt(sys, 2) + " / " + fmt(dia, 2) + " s"],
+    ["Sistolik hajm", fmt(s.sv, 0) + " mL"],
+    ["Sutkalik hajm", fmt(co * 1440, 0) + " L"]
+  ];
+  rows.forEach((r, i) => {
+    const y = 328 + i * 26;
+    text(ctx, r[0], 678, y, { size: 10, color: "rgba(160,195,215,.62)" });
+    text(ctx, r[1], 918, y, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  });
+  text(ctx, "CO = HR × SV / 1000", 678, 458, { size: 9.5, mono: true, color: "rgba(150,195,215,.5)" });
+
+  text(ctx, "CO = HR · SV / 1000 · T = 60 / HR · sistola ≈ 0,3·T", 30, 518, { size: 10.5, color: "rgba(150,195,215,.55)" });
+}
+
+function anatBrainPath(ctx, cx, cy) {
+  ctx.beginPath();
+  ctx.moveTo(cx - 158, cy + 18);
+  ctx.bezierCurveTo(cx - 182, cy - 52, cx - 140, cy - 128, cx - 52, cy - 146);
+  ctx.bezierCurveTo(cx + 28, cy - 162, cx + 122, cy - 128, cx + 156, cy - 52);
+  ctx.bezierCurveTo(cx + 178, cy - 2, cx + 168, cy + 52, cx + 132, cy + 78);
+  ctx.bezierCurveTo(cx + 112, cy + 92, cx + 92, cy + 90, cx + 80, cy + 70);
+  ctx.bezierCurveTo(cx + 50, cy + 112, cx - 12, cy + 124, cx - 58, cy + 96);
+  ctx.bezierCurveTo(cx - 108, cy + 112, cx - 156, cy + 74, cx - 158, cy + 18);
+  ctx.closePath();
+}
+
+function drawAnatomyBrain(ctx, s, time) {
+  const f = 2 + 0.28 * s.a;
+  const band = f < 4 ? "delta" : f < 8 ? "teta" : f < 13 ? "alfa" : f < 30 ? "beta" : "gamma";
+  subjectBg(ctx, "ODAM ANATOMIYASI", "Miya — boshqaruv markazi", band.toUpperCase() + " · " + fmt(f, 1) + " Hz");
+
+  const cx = 318, cy = 272;
+  const act = s.a / 100;
+  const pulse = .6 + .4 * Math.sin(time * 2.6);
+
+  const gl = ctx.createRadialGradient(cx, cy, 20, cx, cy, 270);
+  gl.addColorStop(0, "rgba(255,120,170,.12)");
+  gl.addColorStop(1, "rgba(255,120,170,0)");
+  ctx.fillStyle = gl;
+  ctx.fillRect(0, 0, CW, CH);
+
+  ctx.beginPath();
+  ctx.moveTo(cx + 22, cy + 78);
+  ctx.bezierCurveTo(cx + 10, cy + 112, cx + 14, cy + 144, cx + 24, cy + 168);
+  ctx.strokeStyle = "rgba(210,140,140,.32)";
+  ctx.lineWidth = 20;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,185,185,.14)";
+  ctx.lineWidth = 9;
+  ctx.stroke();
+
+  anatBrainPath(ctx, cx, cy);
+  const bg = ctx.createRadialGradient(cx - 45, cy - 60, 10, cx, cy, 215);
+  bg.addColorStop(0, "#a95a70");
+  bg.addColorStop(.55, "#7c3046");
+  bg.addColorStop(1, "#4e1a2b");
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,175,195,.45)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.save();
+  anatBrainPath(ctx, cx, cy);
+  ctx.clip();
+  for (let row = 0; row < 9; row++) {
+    ctx.beginPath();
+    for (let x = -170; x <= 170; x += 4) {
+      const y = -120 + row * 29 + Math.sin(x * .055 + row * 1.9) * 7 + Math.cos(x * .021 + row) * 4;
+      if (x === -170) ctx.moveTo(cx + x, cy + y);
+      else ctx.lineTo(cx + x, cy + y);
+    }
+    ctx.strokeStyle = "rgba(255,190,210,.13)";
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+  }
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 120 + i * 44, cy - 130);
+    ctx.bezierCurveTo(cx - 132 + i * 44, cy - 40, cx - 100 + i * 44, cy + 40, cx - 112 + i * 44, cy + 105);
+    ctx.strokeStyle = "rgba(255,190,210,.09)";
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(cx + 20, cy - 138);
+  ctx.bezierCurveTo(cx + 10, cy - 92, cx + 26, cy - 50, cx + 12, cy - 10);
+  ctx.strokeStyle = "rgba(66,16,36,.45)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 150, cy + 26);
+  ctx.bezierCurveTo(cx - 92, cy + 10, cx - 40, cy + 18, cx + 8, cy + 48);
+  ctx.strokeStyle = "rgba(66,16,36,.32)";
+  ctx.lineWidth = 2.4;
+  ctx.stroke();
+  const regions = [
+    [cx - 92, cy - 48, 82, .32],
+    [cx + 28, cy - 88, 70, .24],
+    [cx - 58, cy + 52, 72, .22],
+    [cx + 118, cy - 12, 66, .20],
+    [cx + 100, cy + 96, 54, .16]
+  ];
+  regions.forEach((r, i) => {
+    const a = (.04 + act * .20) * (.65 + .35 * Math.sin(time * 2.2 + i * 1.3));
+    const g = ctx.createRadialGradient(r[0], r[1], 2, r[0], r[1], r[2]);
+    g.addColorStop(0, "rgba(255,170,205," + a + ")");
+    g.addColorStop(1, "rgba(255,170,205,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(r[0], r[1], r[2], 0, TAU);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx + 100, cy + 92);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 52, 33, -.14, 0, TAU);
+  const cg = ctx.createRadialGradient(-10, -8, 2, 0, 0, 52);
+  cg.addColorStop(0, "rgba(255,160,185,.30)");
+  cg.addColorStop(1, "rgba(150,60,80,.18)");
+  ctx.fillStyle = cg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,175,195,.35)";
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+  ctx.save();
+  ctx.clip();
+  for (let i = -3; i <= 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-52, i * 8);
+    ctx.bezierCurveTo(-20, i * 8 - 5, 20, i * 8 + 5, 52, i * 8);
+    ctx.strokeStyle = "rgba(255,190,205,.16)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.restore();
+
+  anatTag(ctx, cx - 172, cy - 96, "Frontal bo‘lak", "#ffc2d4", "right", cx - 105, cy - 62);
+  anatTag(ctx, cx + 8, cy - 178, "Tepa bo‘lagi", "#ffc2d4", "center", cx + 30, cy - 108);
+  anatTag(ctx, cx - 168, cy + 62, "Chakka bo‘lagi", "#ffc2d4", "right", cx - 100, cy + 42);
+  anatTag(ctx, cx + 170, cy - 30, "Ensit bo‘lagi", "#ffc2d4", "left", cx + 112, cy - 18);
+  anatTag(ctx, cx + 172, cy + 132, "Miyacha", "#ffc2d4", "left", cx + 118, cy + 96);
+  anatTag(ctx, cx + 44, cy + 168, "Miya ustuni", "#ffc2d4", "left", cx + 28, cy + 150);
+
+  panel(ctx, 660, 96, 276, 380, "#ff9ec4");
+  text(ctx, "EEG · MIYA BIOPOTENSIALI", 678, 120, { size: 9.5, weight: 750, color: "rgba(255,190,215,.72)" });
+
+  const gx = 678, gy = 136, gw = 238, gh = 112, mid = gy + gh / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(gx, gy, gw, gh);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(255,160,200,.055)";
+  ctx.lineWidth = 1;
+  for (let x = gx; x <= gx + gw; x += 10) {
+    ctx.beginPath();
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x, gy + gh);
+    ctx.stroke();
+  }
+  for (let y = gy; y <= gy + gh; y += 10) {
+    ctx.beginPath();
+    ctx.moveTo(gx, y);
+    ctx.lineTo(gx + gw, y);
+    ctx.stroke();
+  }
+  const amp = clamp(34 - f * .6, 12, 34);
+  ctx.beginPath();
+  for (let i = 0; i <= gw; i++) {
+    const p = i / gw;
+    const v = Math.sin(TAU * (f * .55) * p + time * 2.4) * .8 +
+      Math.sin(TAU * (f * 1.9) * p + time * 4.1) * .18 +
+      Math.sin(TAU * (f * .17) * p + time) * .12;
+    const y = mid - v * amp;
+    if (i === 0) ctx.moveTo(gx + i, y);
+    else ctx.lineTo(gx + i, y);
+  }
+  ctx.strokeStyle = "rgba(255,150,195,.18)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  ctx.strokeStyle = "#ffb8d4";
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+  ctx.restore();
+
+  text(ctx, "EEG CHASTOTASI", 678, 266, { size: 9.5, weight: 750, color: "rgba(255,190,215,.62)" });
+  text(ctx, fmt(f, 1), 678, 300, { size: 30, mono: true, weight: 650, color: "#ffe6f0" });
+  text(ctx, "Hz", 746, 300, { size: 12, color: "rgba(255,200,220,.65)" });
+  text(ctx, band.toUpperCase() + " TO‘LQINI", 918, 300, { size: 10, align: "right", mono: true, color: "rgba(255,200,220,.7)" });
+
+  const o2 = 3.3 + 1.7 * s.a / 100;
+  const cbf = 50 + 25 * s.a / 100;
+  const impulse = 5 + .45 * s.a;
+  const rows = [
+    ["Faollik darajasi", fmt(s.a, 0) + " %"],
+    ["Neyron impulslari", fmt(impulse, 1) + " Hz"],
+    ["Kislorod sarfi", fmt(o2, 2) + " mL/100g/min"],
+    ["Miya qon oqimi", fmt(cbf, 1) + " mL/100g/min"]
+  ];
+  rows.forEach((r, i) => {
+    const y = 344 + i * 26;
+    text(ctx, r[0], 678, y, { size: 10, color: "rgba(160,195,215,.62)" });
+    text(ctx, r[1], 918, y, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  });
+  text(ctx, "f = 2 + 0,28·A · O₂ = 3,3 + 1,7·A/100", 678, 456, { size: 9.5, mono: true, color: "rgba(150,195,215,.5)" });
+
+  text(ctx, "delta 0,5–4 · teta 4–8 · alfa 8–13 · beta 13–30 · gamma > 30 Hz", 30, 518, { size: 10.5, color: "rgba(150,195,215,.55)" });
+}
+
+function anatLiverPath(ctx, cx, cy, k) {
+  ctx.beginPath();
+  ctx.moveTo(cx - 190 * k, cy - 30 * k);
+  ctx.bezierCurveTo(cx - 150 * k, cy - 85 * k, cx - 40 * k, cy - 105 * k, cx + 60 * k, cy - 95 * k);
+  ctx.bezierCurveTo(cx + 150 * k, cy - 86 * k, cx + 195 * k, cy - 40 * k, cx + 190 * k, cy + 15 * k);
+  ctx.bezierCurveTo(cx + 185 * k, cy + 70 * k, cx + 120 * k, cy + 100 * k, cx + 45 * k, cy + 90 * k);
+  ctx.bezierCurveTo(cx - 20 * k, cy + 105 * k, cx - 120 * k, cy + 90 * k, cx - 165 * k, cy + 45 * k);
+  ctx.bezierCurveTo(cx - 185 * k, cy + 20 * k, cx - 200 * k, cy - 5 * k, cx - 190 * k, cy - 30 * k);
+  ctx.closePath();
+}
+
+function drawAnatomyLiver(ctx, s, time) {
+  subjectBg(ctx, "ODAM ANATOMIYASI", "Jigar — detoksikatsiya markazi", "Q = " + fmt(s.q, 2) + " L/min · C = " + fmt(s.c, 0) + " mg/L");
+
+  const cx = 330, cy = 286;
+  const flow = (time * .32) % 1;
+  const bile = (time * .18) % 1;
+  const pulse = .5 + .5 * Math.sin(time * 2.1);
+  const E = clamp(.92 - s.c / 100 * .32, .45, .95);
+  const residual = s.c * (1 - E);
+  const detox = s.q * s.c * E;
+  const bileOut = .5 + .33 * s.q / 1.5;
+
+  const gl = ctx.createRadialGradient(cx - 20, cy, 10, cx - 20, cy, 270);
+  gl.addColorStop(0, "rgba(245,184,75,.09)");
+  gl.addColorStop(1, "rgba(245,184,75,0)");
+  ctx.fillStyle = gl;
+  ctx.fillRect(0, 0, CW, CH);
+
+  const portal = [[cx - 268, cy + 132], [cx - 210, cy + 100], [cx - 150, cy + 70], [cx - 90, cy + 42], [cx - 52, cy + 20]];
+  const artery = [[cx - 238, cy + 182], [cx - 188, cy + 146], [cx - 138, cy + 110], [cx - 88, cy + 74], [cx - 52, cy + 36]];
+  const hep = [[cx + 36, cy - 40], [cx + 48, cy - 92], [cx + 56, cy - 140], [cx + 54, cy - 188]];
+  const duct = [[cx + 112, cy + 94], [cx + 140, cy + 128], [cx + 172, cy + 162], [cx + 196, cy + 188]];
+  anatVessel(ctx, portal, 12, "#8f7aff");
+  anatVessel(ctx, artery, 6, "#ff6b6b");
+  anatVessel(ctx, hep, 12, "#5aa9ff");
+  anatVessel(ctx, duct, 5, "#5ee08a");
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(1 + .004 * pulse, 1 + .004 * pulse);
+  ctx.translate(-cx, -cy);
+  anatLiverPath(ctx, cx, cy, 1);
+  const lg = ctx.createRadialGradient(cx - 60, cy - 50, 20, cx, cy, 230);
+  lg.addColorStop(0, "#8e3a3f");
+  lg.addColorStop(.6, "#642329");
+  lg.addColorStop(1, "#3d1116");
+  ctx.fillStyle = lg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,165,150,.38)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.save();
+  anatLiverPath(ctx, cx, cy, 1);
+  ctx.clip();
+  const shine = ctx.createRadialGradient(cx - 90, cy - 70, 5, cx - 90, cy - 70, 170);
+  shine.addColorStop(0, "rgba(255,180,150,.14)");
+  shine.addColorStop(1, "rgba(255,180,150,0)");
+  ctx.fillStyle = shine;
+  ctx.fillRect(cx - 200, cy - 110, 400, 220);
+  ctx.beginPath();
+  ctx.moveTo(cx - 66, cy - 96);
+  ctx.quadraticCurveTo(cx - 56, cy - 18, cx - 70, cy + 62);
+  ctx.strokeStyle = "rgba(40,10,14,.55)";
+  ctx.lineWidth = 2.4;
+  ctx.stroke();
+  for (let i = 0; i < 9; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 148 + i * 32, cy - 78);
+    ctx.quadraticCurveTo(cx - 128 + i * 32, cy, cx - 148 + i * 32, cy + 78);
+    ctx.strokeStyle = "rgba(255,160,140,.045)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  const pg = ctx.createRadialGradient(cx - 30, cy + 10, 5, cx - 30, cy + 10, 150);
+  pg.addColorStop(0, "rgba(245,184,75," + (.06 + .06 * pulse) + ")");
+  pg.addColorStop(1, "rgba(245,184,75,0)");
+  ctx.fillStyle = pg;
+  ctx.fillRect(cx - 190, cy - 100, 380, 200);
+  ctx.restore();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx + 104, cy + 86);
+  ctx.rotate(-.32);
+  const gg = ctx.createRadialGradient(-7, -8, 3, 0, 0, 34);
+  gg.addColorStop(0, "#9af0b1");
+  gg.addColorStop(.55, "#58b878");
+  gg.addColorStop(1, "#2c6e46");
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 21, 31, 0, 0, TAU);
+  ctx.fillStyle = gg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(150,255,190,.45)";
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(5, -28);
+  ctx.quadraticCurveTo(17, -44, 25, -35);
+  ctx.strokeStyle = "rgba(120,230,160,.7)";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.restore();
+
+  const portalFlow = portal.concat([[cx - 10, cy + 10], [cx + 30, cy - 6], [cx + 36, cy - 40], [cx + 48, cy - 92], [cx + 56, cy - 140], [cx + 54, cy - 188]]);
+  const arteryFlow = artery.concat([[cx - 10, cy + 10], [cx + 30, cy - 6], [cx + 36, cy - 40], [cx + 48, cy - 92], [cx + 56, cy - 140], [cx + 54, cy - 188]]);
+  anatFlow(ctx, portalFlow, flow, 7, "#8fa7ff", 2.4);
+  anatFlow(ctx, arteryFlow, (flow + .5) % 1, 4, "#ff8a8a", 2.2);
+
+  for (let i = 0; i < 6; i++) {
+    const p = (flow + i / 6) % 1;
+    if (p < .62) {
+      const q = anatPolyPoint(portalFlow, p);
+      anatGlowDot(ctx, q[0], q[1], 2.2, "#f5c24b", .9 * (1 - p / .62));
+    }
+  }
+  const bilePath = [[cx + 20, cy + 30], [cx + 70, cy + 60], [cx + 100, cy + 76], [cx + 112, cy + 94], [cx + 140, cy + 128], [cx + 172, cy + 162], [cx + 196, cy + 188]];
+  anatFlow(ctx, bilePath, bile, 3, "#5ee08a", 2);
+
+  anatTag(ctx, 62, 330, "Darvoza venasi", "#b8a8ff", "left", 150, 350);
+  anatTag(ctx, 62, 470, "Jigar arteriyasi", "#ff9c9c", "left", 142, 432);
+  anatTag(ctx, cx + 70, cy - 160, "Jigar venasi", "#8cc8ff", "left", cx + 54, cy - 122);
+  anatTag(ctx, cx + 150, cy + 88, "O‘t pufagi", "#8ef0bd", "left", cx + 116, cy + 88);
+  anatTag(ctx, cx + 206, cy + 200, "O‘t yo‘li", "#8ef0bd", "left", cx + 190, cy + 180);
+
+  text(ctx, "O‘ng bo‘lak", cx - 92, cy - 48, { size: 9, color: "rgba(255,200,190,.35)", weight: 600 });
+  text(ctx, "Chap bo‘lak", cx + 62, cy - 56, { size: 9, color: "rgba(255,200,190,.35)", weight: 600 });
+
+  panel(ctx, 660, 96, 276, 380, "#f5b84b");
+  text(ctx, "JIGAR · DETOKSIKATSIYA", 678, 120, { size: 9.5, weight: 750, color: "rgba(255,210,150,.72)" });
+  text(ctx, "TOKSIN YO‘QOTISH", 678, 148, { size: 9.5, weight: 750, color: "rgba(255,210,150,.58)" });
+  text(ctx, fmt(detox, 1), 678, 180, { size: 28, mono: true, weight: 650, color: "#ffe8c4" });
+  text(ctx, "mg/min", 760, 180, { size: 11, color: "rgba(255,215,165,.65)" });
+
+  text(ctx, "Tozalash samarasi", 678, 214, { size: 10, color: "rgba(160,195,215,.62)" });
+  text(ctx, fmt(E * 100, 0) + " %", 918, 214, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  rr(ctx, 678, 222, 240, 7, 4);
+  ctx.fillStyle = "rgba(255,255,255,.07)";
+  ctx.fill();
+  rr(ctx, 678, 222, 240 * E, 7, 4);
+  ctx.fillStyle = "#5ee08a";
+  ctx.fill();
+
+  text(ctx, "Kirish konsentratsiyasi", 678, 256, { size: 10, color: "rgba(160,195,215,.62)" });
+  text(ctx, fmt(s.c, 0) + " mg/L", 918, 256, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  rr(ctx, 678, 264, 240, 7, 4);
+  ctx.fillStyle = "rgba(255,255,255,.07)";
+  ctx.fill();
+  rr(ctx, 678, 264, 240 * (s.c / 100), 7, 4);
+  ctx.fillStyle = "#f5b84b";
+  ctx.fill();
+
+  text(ctx, "Qoldiq konsentratsiya", 678, 298, { size: 10, color: "rgba(160,195,215,.62)" });
+  text(ctx, fmt(residual, 1) + " mg/L", 918, 298, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  rr(ctx, 678, 306, 240, 7, 4);
+  ctx.fillStyle = "rgba(255,255,255,.07)";
+  ctx.fill();
+  rr(ctx, 678, 306, 240 * clamp(residual / 100, 0, 1), 7, 4);
+  ctx.fillStyle = "#5ee08a";
+  ctx.fill();
+
+  const rows = [
+    ["Qon oqimi, Q", fmt(s.q, 2) + " L/min"],
+    ["Darvoza venasi / arteriya", fmt(s.q * .75, 2) + " / " + fmt(s.q * .25, 2) + " L/min"],
+    ["O‘t ishlab chiqarish", fmt(bileOut, 2) + " L/sutka"],
+    ["Tozalangan qon", fmt(s.q * E, 2) + " L/min"]
+  ];
+  rows.forEach((r, i) => {
+    const y = 348 + i * 26;
+    text(ctx, r[0], 678, y, { size: 10, color: "rgba(160,195,215,.62)" });
+    text(ctx, r[1], 918, y, { size: 10.5, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  });
+  text(ctx, "E = 0,92 − 0,32·C/100", 678, 456, { size: 9.5, mono: true, color: "rgba(150,195,215,.5)" });
+
+  text(ctx, "Qjigar ≈ 1,5 L/min · 75% darvoza venasi · 25% jigar arteriyasi", 30, 518, { size: 10.5, color: "rgba(150,195,215,.55)" });
+}
+
+function anatAP(t, fires, vm) {
+  if (!fires) return -70 + (vm + 70) * Math.exp(-Math.pow((t - .16) / .07, 2));
+  if (t < .10) return -70;
+  if (t < .16) return lerp(-70, -55, (t - .10) / .06);
+  if (t < .21) return lerp(-55, 30, (t - .16) / .05);
+  if (t < .32) return lerp(30, -80, (t - .21) / .11);
+  if (t < .60) return lerp(-80, -70, (t - .32) / .28);
+  return -70;
+}
+
+function drawAnatomyNeuron(ctx, s, time) {
+  const vm = -70 + s.stim * .5;
+  const fires = vm >= -55;
+  const normal = s.myelin === "normal";
+  const v = normal ? 90 : 5;
+  const t = s.L * 10 / v;
+  const freq = fires ? 5 + .45 * s.stim : 0;
+  subjectBg(ctx, "ODAM ANATOMIYASI", "Neyron — nerv impulsi", (fires ? "impuls bor" : "bo‘sag‘a yetmadi") + " · " + fmt(vm, 0) + " mV");
+
+  const phase = fires ? (time * .55 * (normal ? 1 : .32)) % 1 : 0;
+  const px = lerp(207, 540, phase);
+  const act = s.stim / 100;
+
+  const gl = ctx.createRadialGradient(300, 285, 20, 300, 285, 320);
+  gl.addColorStop(0, "rgba(126,224,200,.08)");
+  gl.addColorStop(1, "rgba(126,224,200,0)");
+  ctx.fillStyle = gl;
+  ctx.fillRect(0, 0, CW, CH);
+
+  const branches = [
+    [[175, 270], [140, 238], [114, 202], [92, 188]],
+    [[160, 258], [128, 226], [104, 206]],
+    [[152, 280], [112, 276], [80, 262], [56, 258]],
+    [[154, 300], [116, 322], [88, 346], [66, 352]],
+    [[170, 316], [152, 350], [136, 378], [116, 392]]
+  ];
+  ctx.strokeStyle = "rgba(255,190,160,.55)";
+  ctx.lineWidth = 3;
+  branches.forEach(b => anatCurve(ctx, b));
+  ctx.stroke();
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(114, 202);
+  ctx.lineTo(98, 178);
+  ctx.moveTo(80, 262);
+  ctx.lineTo(62, 278);
+  ctx.moveTo(88, 346);
+  ctx.lineTo(70, 366);
+  ctx.moveTo(136, 378);
+  ctx.lineTo(128, 400);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(196, 276);
+  ctx.lineTo(215, 285);
+  ctx.lineTo(196, 296);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(255,200,160,.5)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(205, 285);
+  ctx.lineTo(540, 285);
+  ctx.strokeStyle = "rgba(159,216,255,.45)";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  for (let i = 0; i < 6; i++) {
+    const x = 240 + i * 50;
+    if (normal) {
+      rr(ctx, x, 270, 42, 30, 15);
+      ctx.fillStyle = "rgba(245,215,142,.14)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(245,215,142,.5)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    } else {
+      rr(ctx, x, 272, 42, 26, 13);
+      ctx.fillStyle = "rgba(245,215,142,.035)";
+      ctx.fill();
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = "rgba(255,140,140,.45)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  const nodes = [236, 286, 336, 386, 436, 486, 536];
+  nodes.forEach(nx => {
+    ctx.beginPath();
+    ctx.moveTo(nx, 272);
+    ctx.lineTo(nx, 298);
+    ctx.strokeStyle = "rgba(220,240,255,.30)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+  if (fires && normal) {
+    nodes.forEach(nx => {
+      const d = Math.abs(px - nx);
+      if (d < 9) anatGlowDot(ctx, nx, 285, 3, "#9fe8ff", .8 * (1 - d / 9));
+    });
+  }
+
+  const sg = ctx.createRadialGradient(162, 272, 4, 175, 285, 38);
+  sg.addColorStop(0, "#ffe6cd");
+  sg.addColorStop(.55, "#e9a08f");
+  sg.addColorStop(1, "#b35f5f");
+  ctx.beginPath();
+  ctx.ellipse(175, 285, 34, 32, 0, 0, TAU);
+  ctx.fillStyle = sg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,220,200,.55)";
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(175, 288, 14, 12, 0, 0, TAU);
+  ctx.fillStyle = "#6e3446";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,190,170,.35)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(178, 286, 4, 0, TAU);
+  ctx.fillStyle = "rgba(255,190,180,.55)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.ellipse(548, 285, 16, 14, 0, 0, TAU);
+  const tg = ctx.createRadialGradient(542, 279, 2, 548, 285, 20);
+  tg.addColorStop(0, "#ffd9c2");
+  tg.addColorStop(1, "#c9736e");
+  ctx.fillStyle = tg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,200,180,.5)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,190,160,.55)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(554, 279);
+  ctx.lineTo(566, 262);
+  ctx.moveTo(555, 291);
+  ctx.lineTo(568, 308);
+  ctx.moveTo(556, 285);
+  ctx.lineTo(570, 285);
+  ctx.stroke();
+  [[566, 262], [568, 308], [570, 285]].forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b[0], b[1], 5, 0, TAU);
+    ctx.fillStyle = "rgba(255,190,160,.6)";
+    ctx.fill();
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  rr(ctx, 612, 238, 12, 96, 6);
+  const mg = ctx.createLinearGradient(612, 238, 624, 334);
+  mg.addColorStop(0, "rgba(126,224,200,.35)");
+  mg.addColorStop(1, "rgba(126,224,200,.18)");
+  ctx.fillStyle = mg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(126,224,200,.5)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.arc(612, 258 + i * 13, 3.5, 0, TAU);
+    ctx.fillStyle = "rgba(180,255,230,.5)";
+    ctx.fill();
+  }
+  ctx.restore();
+
+  for (let i = 0; i < 5; i++) {
+    const vx = 538 + (i % 3) * 8;
+    const vy = 276 + Math.floor(i / 3) * 12;
+    if (phase > .86 && fires) {
+      const rel = (phase - .86) / .14;
+      ctx.beginPath();
+      ctx.arc(lerp(560, 608, rel), lerp(vy, 285, .4) + i * 2, 2.2, 0, TAU);
+      ctx.fillStyle = "rgba(255,160,195," + (1 - rel * .5) + ")";
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(vx, vy, 2.6, 0, TAU);
+      ctx.fillStyle = "rgba(255,160,195,.75)";
+      ctx.fill();
+    }
+  }
+  if (phase > .86 && fires) {
+    const rel = (phase - .86) / .14;
+    ctx.beginPath();
+    ctx.arc(618, 285, 22, 0, TAU);
+    const rg2 = ctx.createRadialGradient(618, 285, 2, 618, 285, 22);
+    rg2.addColorStop(0, "rgba(126,224,200," + (.45 * (1 - rel)) + ")");
+    rg2.addColorStop(1, "rgba(126,224,200,0)");
+    ctx.fillStyle = rg2;
+    ctx.fill();
+  }
+
+  if (fires) {
+    for (let i = 4; i >= 1; i--) {
+      const back = clamp(phase - i * .018, 0, 1);
+      const bx = lerp(207, 540, back);
+      anatGlowDot(ctx, bx, 285, 3.4 - i * .4, normal ? "#9fe8ff" : "#ffb86b", .16);
+    }
+    anatGlowDot(ctx, px, 285, 4.6, normal ? "#9fe8ff" : "#ffb86b", .95);
+  }
+
+  anatTag(ctx, 62, 180, "Dendritlar", "#ffc9b0", "left", 96, 194);
+  anatTag(ctx, 226, 202, "Yadro", "#ffc9b0", "left", 184, 279);
+  anatTag(ctx, 250, 216, "Miyelin qobig‘i", "#f5d78e", "left", 306, 268);
+  anatTag(ctx, 342, 340, "Akson", "#9fd8ff", "left", 342, 289);
+  anatTag(ctx, 430, 348, "Ranvyer bo‘g‘ini", "#f5d78e", "left", 436, 300);
+  anatTag(ctx, 596, 214, "Sinaps", "#ffb0c8", "left", 600, 280);
+
+  pill(ctx, 30, 86, fires ? "IMPULS BOR" : "BO‘SAG‘A YETMADI", {
+    bg: fires ? "rgba(94,224,138,.09)" : "rgba(255,107,107,.10)",
+    border: fires ? "rgba(94,224,138,.35)" : "rgba(255,107,107,.4)",
+    color: fires ? "#8bf0b0" : "#ffb3b3"
+  });
+  pill(ctx, 30, 118, "MIYELIN: " + (normal ? "normal" : "shikastlangan"), {
+    bg: normal ? "rgba(245,215,142,.08)" : "rgba(255,107,107,.08)",
+    border: normal ? "rgba(245,215,142,.3)" : "rgba(255,107,107,.32)",
+    color: normal ? "#f5d78e" : "#ffb3b3"
+  });
+
+  panel(ctx, 660, 96, 276, 380, "#7ee0c8");
+  text(ctx, "MEMBRANA POTENSIALI", 678, 120, { size: 9.5, weight: 750, color: "rgba(170,240,220,.72)" });
+
+  const gx = 678, gy = 136, gw = 238, gh = 120;
+  const vy = val => gy + gh - ((val + 85) / 125) * gh;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(gx, gy, gw, gh);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(126,224,200,.055)";
+  ctx.lineWidth = 1;
+  for (let x = gx; x <= gx + gw; x += 10) {
+    ctx.beginPath();
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x, gy + gh);
+    ctx.stroke();
+  }
+  for (let y = gy; y <= gy + gh; y += 10) {
+    ctx.beginPath();
+    ctx.moveTo(gx, y);
+    ctx.lineTo(gx + gw, y);
+    ctx.stroke();
+  }
+  [-70, -55, 30].forEach(lvl => {
+    ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = "rgba(180,230,220,.22)";
+    ctx.beginPath();
+    ctx.moveTo(gx, vy(lvl));
+    ctx.lineTo(gx + gw, vy(lvl));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  ctx.beginPath();
+  for (let i = 0; i <= gw; i++) {
+    const p = i / gw;
+    const y = vy(anatAP(p, fires, vm));
+    if (i === 0) ctx.moveTo(gx + i, y);
+    else ctx.lineTo(gx + i, y);
+  }
+  ctx.strokeStyle = "rgba(126,224,200,.18)";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  ctx.strokeStyle = "#8ef0d8";
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+  ctx.restore();
+
+  text(ctx, "−70", gx + 4, vy(-70) - 5, { size: 8, mono: true, color: "rgba(180,230,220,.5)" });
+  text(ctx, "−55", gx + 4, vy(-55) - 5, { size: 8, mono: true, color: "rgba(255,200,120,.6)" });
+  text(ctx, "+30", gx + 4, vy(30) - 5, { size: 8, mono: true, color: "rgba(180,230,220,.5)" });
+
+  const cxp = gx + gw * (fires ? phase : .16);
+  const cyp = vy(anatAP(fires ? phase : .16, fires, vm));
+  ctx.beginPath();
+  ctx.arc(cxp, cyp, 3.2, 0, TAU);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+
+  text(ctx, "QO‘ZG‘ALISH TEZLIGI", 678, 276, { size: 9.5, weight: 750, color: "rgba(170,240,220,.6)" });
+  text(ctx, fmt(v, 0), 678, 310, { size: 30, mono: true, weight: 650, color: "#dffff6" });
+  text(ctx, "m/s", 752, 310, { size: 12, color: "rgba(170,240,220,.65)" });
+
+  const rows = [
+    ["Qo‘zg‘atish kuchi", fmt(s.stim, 0) + " %"],
+    ["Membrana potensiali", fmt(vm, 0) + " mV"],
+    ["Holat", fires ? "impuls bor" : "bo‘sag‘a yetmadi"],
+    ["Akson uzunligi", fmt(s.L, 0) + " sm"],
+    ["O‘tkazish vaqti", fires ? fmt(t, 1) + " ms" : "—"],
+    ["Impuls chastotasi", fires ? fmt(freq, 1) + " Hz" : "0 Hz"]
+  ];
+  rows.forEach((r, i) => {
+    const y = 344 + i * 20;
+    text(ctx, r[0], 678, y, { size: 9.5, color: "rgba(160,195,215,.62)" });
+    text(ctx, r[1], 918, y, { size: 10, align: "right", mono: true, color: "rgba(230,242,250,.85)" });
+  });
+  text(ctx, "Vm = −70 + 0,5·A · t = L / v", 678, 456, { size: 9.5, mono: true, color: "rgba(150,195,215,.5)" });
+
+  text(ctx, "Vm: −70 mV → bo‘sag‘a −55 mV → pik +30 mV · miyelinli akson 80–120 m/s", 30, 518, { size: 10.5, color: "rgba(150,195,215,.55)" });
+}
+
+/* ============================================================
    KO‘RINISH, BOSHQARUV VA ROUTING
    ============================================================ */
 
@@ -1551,7 +2898,11 @@ function renderLabTabs(key) {
   bar.hidden = false;
   bar.innerHTML = labs.map(k => {
     const d = defs[k];
-    return '<button type="button" class="lab-tab' + (k === key ? " active" : "") + '" data-lab="' + k + '">' + (d.labLabel || d.title) + "</button>";
+    const active = k === key;
+    const style = active
+      ? ' style="border-color:' + hexA(d.accent, .55) + ';background:linear-gradient(135deg,' + hexA(d.accent, .16) + ',' + hexA(d.accent, .05) + ')"'
+      : "";
+    return '<button type="button" class="lab-tab' + (active ? " active" : "") + '" data-lab="' + k + '"' + style + '>' + (d.labLabel || d.title) + "</button>";
   }).join("");
   bar.querySelectorAll("[data-lab]").forEach(btn => {
     btn.addEventListener("click", () => { location.hash = btn.getAttribute("data-lab"); });
