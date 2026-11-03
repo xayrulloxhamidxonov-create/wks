@@ -166,6 +166,63 @@ main{padding-bottom:10px}
   box-shadow:0 26px 70px rgba(0,0,0,.38);
 }
 .stage-wrap canvas{display:block;width:100%;height:auto;touch-action:none}
+.anatomy-switch{
+  position:absolute;z-index:8;top:14px;left:14px;display:inline-flex;gap:4px;padding:4px;
+  border-radius:999px;background:rgba(5,16,25,.74);border:1px solid rgba(150,205,235,.2);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 10px 26px rgba(0,0,0,.4);
+}
+.anatomy-switch[hidden]{display:none}
+.anatomy-switch button{
+  border:0;background:transparent;color:rgba(203,228,240,.66);
+  font:650 11px/1 var(--ui);padding:9px 13px;border-radius:999px;transition:color .2s,background .2s;
+}
+.anatomy-switch button.active{
+  color:#061319;
+  background:linear-gradient(135deg,rgba(255,255,255,.97),var(--glow-solid,#9ff0e7));
+  box-shadow:0 4px 16px rgba(0,0,0,.28);
+}
+.anatomy-3d{
+  position:absolute;inset:0;z-index:6;overflow:hidden;
+  background:
+    radial-gradient(55% 60% at 50% 42%,var(--glow,rgba(255,122,156,.12)),transparent 74%),
+    radial-gradient(85% 70% at 50% 118%,rgba(0,0,0,.65),transparent 62%),
+    linear-gradient(180deg,#111820 0%,#0a0f14 72%,#080b0f 100%);
+}
+.anatomy-3d[hidden]{display:none}
+.anatomy-3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.anatomy-3d canvas:active{cursor:grabbing}
+.anatomy-chip{
+  position:absolute;z-index:3;top:14px;right:14px;display:inline-flex;align-items:center;gap:7px;
+  padding:8px 12px;border-radius:999px;background:rgba(8,14,20,.72);
+  border:1px solid rgba(180,200,215,.16);backdrop-filter:blur(12px);
+  font:700 10px/1 var(--mono);letter-spacing:.09em;color:rgba(228,232,236,.8);
+}
+.anatomy-chip i{width:6px;height:6px;border-radius:50%;background:var(--glow-solid,#7ee0c8);box-shadow:0 0 10px var(--glow-solid,#7ee0c8)}
+.anatomy-material{
+  position:absolute;z-index:3;left:14px;bottom:14px;display:inline-flex;gap:4px;padding:4px;
+  border-radius:999px;background:rgba(8,14,20,.72);border:1px solid rgba(180,200,215,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.anatomy-material button{
+  border:0;background:transparent;color:rgba(203,228,240,.66);
+  font:650 10px/1 var(--ui);padding:8px 11px;border-radius:999px;transition:color .2s,background .2s;
+}
+.anatomy-material button.active{
+  color:#061319;
+  background:linear-gradient(135deg,rgba(255,255,255,.95),var(--glow-solid,#9ff0e7));
+}
+.anatomy-bottom{position:absolute;z-index:3;left:14px;right:14px;bottom:14px;display:flex;align-items:flex-end;justify-content:flex-end;gap:12px;pointer-events:none}
+.anatomy-hint{font:500 10px/1.4 var(--mono);color:rgba(170,190,205,.55);text-align:right;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+@media (max-width:640px){
+  .anatomy-switch{top:10px;left:10px}
+  .anatomy-switch button{padding:8px 10px;font-size:10px}
+  .anatomy-chip{top:10px;right:10px;font-size:9px;padding:7px 9px}
+  .anatomy-material{left:10px;bottom:10px}
+  .anatomy-material button{padding:7px 9px;font-size:9px}
+  .anatomy-bottom{left:10px;right:10px;bottom:10px}
+  .anatomy-hint{display:none}
+}
 .live-badge{
   position:absolute;right:14px;bottom:14px;
   display:inline-flex;align-items:center;gap:7px;
@@ -1055,8 +1112,23 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
   <main>
     <section class="lab active" id="subject-lab">
       <div class="lab-body">
-        <div class="stage-wrap">
+        <div class="stage-wrap" id="subject-stage">
           <canvas id="subject-canvas" aria-label="Fan laboratoriyasi animatsiyasi"></canvas>
+          <div class="anatomy-switch" id="anatomy-switch" hidden>
+            <button type="button" data-view3d="2d">2D animatsiya</button>
+            <button type="button" data-view3d="3d" class="active">3D model</button>
+          </div>
+          <div class="anatomy-3d" id="anatomy-3d" hidden>
+            <canvas id="anatomy-3d-canvas" aria-label="Organning realistik 3D modeli"></canvas>
+            <div class="anatomy-chip"><i></i><span id="anatomy-3d-chip">3D ANATOMIYA</span></div>
+            <div class="anatomy-material" id="anatomy-material">
+              <button type="button" data-mat="realistic" class="active">Realistik</button>
+              <button type="button" data-mat="glass">Shisha</button>
+            </div>
+            <div class="anatomy-bottom">
+              <span class="anatomy-hint">Sudrab aylantiring · g‘ildirak bilan yaqinlashtiring</span>
+            </div>
+          </div>
         </div>
         <aside class="side">
           <div class="card">
@@ -1106,5 +1178,6 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 <noscript>Bu dastur ishlashi uchun brauzerda JavaScript yoqilgan bo‘lishi kerak.</noscript>
 <script src="app.js"></script>
 <script src="subjects.js"></script>
+<script type="module" src="anatomy3d.js"></script>
 </body>
 </html>

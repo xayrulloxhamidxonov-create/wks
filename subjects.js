@@ -2937,6 +2937,7 @@ function mountSubject(key) {
   renderSubjectNotes(def);
   buildControls(def);
   updateSubject(def);
+  window.dispatchEvent(new CustomEvent("subject:mount", { detail: { key: key, def: def } }));
 }
 
 function renderCards() {
@@ -2999,8 +3000,11 @@ $("subject-report").addEventListener("click", () => {
   downloadText("laboratoriya-" + currentKey + ".txt", buildReport(report));
 });
 
+window.SubjectCatalog = { defs: defs, labs: SUBJECT_LABS };
+
 window.SubjectRuntime = {
   draw(t, dt) {
+    if (window.Anatomy3D && window.Anatomy3D.covering()) return;
     if (!currentKey || !ctxS) return;
     const def = defs[currentKey];
     if (def) def.draw(ctxS, def.state, t, dt);
