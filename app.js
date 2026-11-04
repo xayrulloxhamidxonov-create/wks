@@ -508,7 +508,7 @@ const lab1 = (() => {
 
 const lab2 = (() => {
   const st = {
-    f1: 100, d1: 6, d2: 18, s1: 6, s1Anim: 6,
+    f1: 100, d1: 6, d2: 18, s1: 6, s1Anim: 6, liquid: "water", rho: 1000,
     anim: -1, animFrom: 0, flow: 0,
     a1: 0, a2: 0, pPa: 0, pNcm: 0, f2: 0, k: 0, s2: 0, work: 0, mass: 0
   };
@@ -518,6 +518,7 @@ const lab2 = (() => {
     d1: $("l2-d1"), d1Out: $("l2-d1-out"),
     d2: $("l2-d2"), d2Out: $("l2-d2-out"),
     s1: $("l2-s1"), s1Out: $("l2-s1-out"),
+    liquid: $("l2-liquid"),
     press: $("l2-press"),
     calc: $("l2-calc")
   };
@@ -527,6 +528,10 @@ const lab2 = (() => {
     const a2cm = Math.PI * st.d2 * st.d2 / 4;
     const a1m = a1cm / 10000;
     const a2m = a2cm / 10000;
+
+    st.liquid = el.liquid.value;
+    const li = LIQUIDS[st.liquid];
+    st.rho = li.rho;
 
     st.a1 = a1cm;
     st.a2 = a2cm;
@@ -551,16 +556,19 @@ const lab2 = (() => {
     setText("l2-s2", fmt(st.s2, 2));
     setText("l2-work", fmt(st.work, 1));
     setText("l2-mass", fmt(st.mass, 1));
+    setText("l2-rho", fmt(st.rho, 0));
     setText("l2-big", fmt(st.f2, st.f2 >= 100 ? 0 : 1) + " N");
 
     el.calc.textContent =
+      "Suyuqlik: " + li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³\n" +
       "p = F₁ / A₁ = " + fmt(st.f1, 0) + " N / " + fmt(st.a1, 2) + " sm²\n" +
       "p = " + fmt(st.pNcm, 2) + " N/sm² = " + fmt(st.pPa / 1000, 1) + " kPa\n\n" +
       "F₂ = p · A₂ = " + fmt(st.pNcm, 2) + " × " + fmt(st.a2, 2) + " = " + fmt(st.f2, 1) + " N\n" +
       "K = A₂ / A₁ = " + fmt(st.k, 2) + " marta\n" +
       "s₂ = s₁ · A₁ / A₂ = " + fmt(st.s1Anim, 1) + " × " + fmt(st.a1 / st.a2, 3) + " = " + fmt(st.s2, 2) + " sm\n" +
       "W = F₁ · s₁ = " + fmt(st.f1, 0) + " × " + fmt(st.s1Anim / 100, 3) + " = " + fmt(st.work, 2) + " J\n" +
-      "F₂ · s₂ = " + fmt(st.work, 2) + " J — ish saqlanadi.";
+      "F₂ · s₂ = " + fmt(st.work, 2) + " J — ish saqlanadi.\n\n" +
+      "Uzatilgan bosim suyuqlik turiga (ρ ga) bog‘liq emas.";
   }
 
   function readInputs() {
@@ -577,6 +585,7 @@ const lab2 = (() => {
   el.f1.addEventListener("input", readInputs);
   el.d1.addEventListener("input", readInputs);
   el.d2.addEventListener("input", readInputs);
+  el.liquid.addEventListener("input", calc);
   el.s1.addEventListener("input", () => {
     st.anim = -1;
     st.s1 = +el.s1.value;
@@ -601,9 +610,10 @@ const lab2 = (() => {
     ctx2.save();
     rr(ctx2, c.ix, c.top + 8, c.iw, c.bottom - c.top - 8, 10);
     ctx2.clip();
+    const li = LIQUIDS[st.liquid];
     const lg = ctx2.createLinearGradient(0, liquidTop, 0, c.bottom);
-    lg.addColorStop(0, "rgba(63,175,225,.55)");
-    lg.addColorStop(1, "rgba(13,72,110,.78)");
+    lg.addColorStop(0, hexA(li.color, 0.55));
+    lg.addColorStop(1, hexA(li.deep, 0.78));
     ctx2.fillStyle = lg;
     ctx2.fillRect(c.ix, liquidTop, c.iw, c.bottom - liquidTop + 10);
     ctx2.fillStyle = "rgba(255,255,255,.07)";
@@ -702,7 +712,7 @@ const lab2 = (() => {
     ctx2.strokeStyle = "rgba(185,225,245,.3)";
     ctx2.lineWidth = 2;
     ctx2.stroke();
-    ctx2.fillStyle = "rgba(30,120,165,.6)";
+    ctx2.fillStyle = hexA(LIQUIDS[st.liquid].deep, 0.6);
     rr(ctx2, 250, 458, 300, 24, 4);
     ctx2.fill();
 
@@ -711,11 +721,12 @@ const lab2 = (() => {
     drawCylinder(B, bigY + 19);
 
     /* oqim zarralari */
+    const liq = LIQUIDS[st.liquid];
     for (let i = 0; i < 9; i++) {
       const px = 268 + ((i / 9 + st.flow) % 1) * 255;
       ctx2.beginPath();
       ctx2.arc(px, 470, 2.3, 0, TAU);
-      ctx2.fillStyle = "rgba(170,230,255,.55)";
+      ctx2.fillStyle = hexA(liq.color, 0.55);
       ctx2.fill();
     }
     if (st.anim >= 0) {
@@ -792,14 +803,19 @@ const lab2 = (() => {
 
     text(ctx2, "Kichik porshen", A.x + A.w / 2, 530, { size: 10.5, color: "rgba(150,195,215,.5)", align: "center" });
     text(ctx2, "Katta porshen", B.x + B.w / 2, 530, { size: 10.5, color: "rgba(150,195,215,.5)", align: "center" });
+    text(ctx2, LIQUIDS[st.liquid].name + " · ρ = " + fmt(st.rho, 0) + " kg/m³", 30, 100, {
+      size: 10.5, color: "rgba(160,205,225,.65)"
+    });
   }
 
   function report() {
+    const li = LIQUIDS[st.liquid];
     return {
       title: "2-laboratoriya. Gidravlik press (Paskal qonuni)",
       goal: "Kichik porshenga berilgan kuchning katta porshenda qanchalik kuchayishini aniqlash.",
-      equipment: "Gidravlik press modeli, ikkita porshen, yuk, bosim o‘lchagich, chizg‘ich.",
+      equipment: "Gidravlik press modeli, ikkita porshen, yuk, bosim o‘lchagich, chizg‘ich, suyuqlik.",
       rows: [
+        ["Suyuqlik", li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³"],
         ["Kichik porshenga kuch, F₁", fmt(st.f1, 0) + " N"],
         ["Diametrlar, d₁ / d₂", fmt(st.d1, 1) + " sm / " + fmt(st.d2, 0) + " sm"],
         ["Yuzalar, A₁ / A₂", fmt(st.a1, 1) + " sm² / " + fmt(st.a2, 1) + " sm²"],
@@ -811,13 +827,15 @@ const lab2 = (() => {
         ["Bajarilgan ish, W", fmt(st.work, 2) + " J"]
       ],
       calc: [
+        "Suyuqlik: " + li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³",
         "p = F₁/A₁ = " + fmt(st.f1, 0) + " / " + fmt(st.a1, 2) + " = " + fmt(st.pNcm, 2) + " N/sm² = " + fmt(st.pPa / 1000, 1) + " kPa",
         "F₂ = p·A₂ = " + fmt(st.pNcm, 2) + " × " + fmt(st.a2, 2) + " = " + fmt(st.f2, 1) + " N",
         "F₂/F₁ = " + fmt(st.k, 2),
         "s₂ = s₁·A₁/A₂ = " + fmt(st.s2, 2) + " sm",
-        "W = F₁·s₁ = F₂·s₂ = " + fmt(st.work, 2) + " J"
+        "W = F₁·s₁ = F₂·s₂ = " + fmt(st.work, 2) + " J",
+        "Uzatilgan bosim suyuqlik turiga (ρ ga) bog‘liq emas."
       ],
-      conclusion: "Kichik porshendagi " + fmt(st.f1, 0) + " N kuch " + fmt(st.f2, 1) + " N gacha kuchaydi, ya’ni " + fmt(st.k, 2) + " marta. Yo‘l shu marta kamayadi, bajarilgan ish esa o‘zgarmaydi."
+      conclusion: "Kichik porshendagi " + fmt(st.f1, 0) + " N kuch " + fmt(st.f2, 1) + " N gacha kuchaydi, ya’ni " + fmt(st.k, 2) + " marta. Yo‘l shu marta kamayadi, bajarilgan ish esa o‘zgarmaydi. " + li.name + " uchun ham bosim p = F₁/A₁ bo‘yicha hisoblanadi — suyuqlik zichligi natijaga ta’sir qilmaydi."
     };
   }
 
@@ -1193,7 +1211,7 @@ const lab3 = (() => {
 
 const lab4 = (() => {
   const st = {
-    h: 0.8, d: 6, v: 0, A: 0, q: 0, t1: 0, range: 0,
+    h: 0.8, d: 6, liquid: "water", rho: 1000, v: 0, A: 0, q: 0, t1: 0, range: 0,
     time: 0, volume: 0, overflow: false, lastDom: 0,
     bubbles: makeBubbles(10)
   };
@@ -1201,6 +1219,7 @@ const lab4 = (() => {
   const el = {
     h: $("l4-h"), hOut: $("l4-h-out"),
     d: $("l4-d"), dOut: $("l4-d-out"),
+    liquid: $("l4-liquid"),
     reset: $("l4-reset"),
     calc: $("l4-calc")
   };
@@ -1208,6 +1227,9 @@ const lab4 = (() => {
   function compute() {
     st.h = +el.h.value;
     st.d = +el.d.value;
+    st.liquid = el.liquid.value;
+    const li = LIQUIDS[st.liquid];
+    st.rho = li.rho;
     st.v = Math.sqrt(2 * G * st.h);
     st.A = Math.PI * Math.pow(st.d / 1000, 2) / 4;
     st.q = st.A * st.v;
@@ -1226,19 +1248,23 @@ const lab4 = (() => {
     setText("l4-qmin", fmt(st.q * 60000, 1));
     setText("l4-t1", fmt(st.t1, 1));
     setText("l4-range", fmt(st.range, 2));
+    setText("l4-rho", fmt(st.rho, 0));
     setText("l4-big", fmt(st.v, 2) + " m/s");
 
     el.calc.textContent =
+      "Suyuqlik: " + li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³\n" +
       "v = √(2gH) = √(2 × 9,81 × " + fmt(st.h, 2) + ")\n" +
       "v = " + fmt(st.v, 3) + " m/s\n\n" +
       "A = πd²/4 = " + fmt(st.A * 1e6, 1) + " mm² = " + sci(st.A, 2) + " m²\n" +
       "Q = A·v = " + sci(st.q, 3) + " m³/s = " + fmt(st.q * 1000, 3) + " L/s\n" +
       "1 L to‘lish vaqti: t = 0,001 / Q = " + fmt(st.t1, 1) + " s\n" +
-      "Oqim masofasi: x = v·√(2y/g) = " + fmt(st.range, 2) + " m  (y = 0,70 m).";
+      "Oqim masofasi: x = v·√(2y/g) = " + fmt(st.range, 2) + " m  (y = 0,70 m).\n\n" +
+      "Ideal suyuqlik uchun tezlik zichlikka bog‘liq emas.";
   }
 
   el.h.addEventListener("input", compute);
   el.d.addEventListener("input", compute);
+  el.liquid.addEventListener("input", compute);
   el.reset.addEventListener("click", () => {
     st.time = 0;
     st.volume = 0;
@@ -1263,7 +1289,7 @@ const lab4 = (() => {
       setText("l4-vol", fmt(st.volume, 2));
     }
 
-    const li = LIQUIDS.water;
+    const li = LIQUIDS[st.liquid];
     const tank = { x: 125, y: 78, w: 265, h: 382 };
     const bottom = tank.y + tank.h;
     const holeX = 392;
@@ -1401,7 +1427,7 @@ const lab4 = (() => {
       const py = holeY + 0.5 * G * tt * tt * scale;
       ctx4.beginPath();
       ctx4.arc(px, py, dropR, 0, TAU);
-      ctx4.fillStyle = "rgba(140,225,255," + (0.25 + 0.65 * (1 - phase)) + ")";
+      ctx4.fillStyle = hexA(li.color, 0.25 + 0.65 * (1 - phase));
       ctx4.fill();
     }
 
@@ -1439,8 +1465,8 @@ const lab4 = (() => {
     ctx4.clip();
     const fillH = 4 + (st.volume / 2) * 28;
     const twg = ctx4.createLinearGradient(0, tray.y + tray.h - fillH, 0, tray.y + tray.h);
-    twg.addColorStop(0, "rgba(90,195,235,.62)");
-    twg.addColorStop(1, "rgba(18,80,115,.85)");
+    twg.addColorStop(0, hexA(li.color, 0.62));
+    twg.addColorStop(1, hexA(li.deep, 0.85));
     ctx4.fillStyle = twg;
     ctx4.fillRect(tray.x + 4, tray.y + tray.h - fillH, tray.w - 8, fillH);
     ctx4.strokeStyle = "rgba(200,240,255,.55)";
@@ -1500,7 +1526,7 @@ const lab4 = (() => {
     }
 
     /* pastki izoh */
-    text(ctx4, "Torricelli: v = √(2gH). Suv sathi qanchalik baland bo‘lsa, oqim shunchalik tez.", 30, 522, {
+    text(ctx4, "Torricelli: v = √(2gH). " + li.name + " uchun zichlikka bog‘liq emas.", 30, 522, {
       size: 10.5, color: "rgba(150,195,215,.5)"
     });
     text(ctx4, "Teshik: d = " + fmt(st.d, 1) + " mm", 930, 522, {
@@ -1509,12 +1535,14 @@ const lab4 = (() => {
   }
 
   function report() {
+    const li = LIQUIDS[st.liquid];
     return {
       title: "4-laboratoriya. Torricelli qonuni",
-      goal: "Teshikdan oqayotgan suyuqlik tezligining suv sathi balandligiga bog‘liqligini tekshirish.",
-      equipment: "Teshikli idish, o‘lchov chizg‘ichi, sekundomer, o‘lchov vannasi (2 L), suv.",
+      goal: "Teshikdan oqayotgan suyuqlik tezligining suyuqlik sathi balandligiga bog‘liqligini tekshirish.",
+      equipment: "Teshikli idish, o‘lchov chizg‘ichi, sekundomer, o‘lchov vannasi (2 L), suyuqlik.",
       rows: [
-        ["Suv sathi, H", fmt(st.h, 2) + " m"],
+        ["Suyuqlik", li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³"],
+        ["Suyuqlik sathi, H", fmt(st.h, 2) + " m"],
         ["Teshik diametri, d", fmt(st.d, 1) + " mm"],
         ["Teshik yuzasi, A", fmt(st.A * 1e6, 1) + " mm² = " + sci(st.A, 2) + " m²"],
         ["Oqim tezligi, v", fmt(st.v, 3) + " m/s"],
@@ -1525,13 +1553,14 @@ const lab4 = (() => {
         ["Yig‘ilgan hajm", fmt(st.volume, 2) + " L"]
       ],
       calc: [
+        "Suyuqlik: " + li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³",
         "v = √(2gH) = √(2 × 9,81 × " + fmt(st.h, 2) + ") = " + fmt(st.v, 3) + " m/s",
         "A = πd²/4 = " + fmt(st.A * 1e6, 1) + " mm² = " + sci(st.A, 2) + " m²",
         "Q = A·v = " + fmt(st.q * 1000, 3) + " L/s",
         "t(1 L) = 0,001/Q = " + fmt(st.t1, 1) + " s",
         "x = v·√(2y/g) = " + fmt(st.range, 2) + " m"
       ],
-      conclusion: "Suv sathi H = " + fmt(st.h, 2) + " m bo‘lganda teshikdan chiqish tezligi " + fmt(st.v, 2) + " m/s, sarf esa " + fmt(st.q * 1000, 3) + " L/s bo‘ldi. H ortishi bilan v = √(2gH) qonuniga muvofiq tezlik ortadi."
+      conclusion: li.name + " uchun suyuqlik sathi H = " + fmt(st.h, 2) + " m bo‘lganda teshikdan chiqish tezligi " + fmt(st.v, 2) + " m/s, sarf esa " + fmt(st.q * 1000, 3) + " L/s bo‘ldi. H ortishi bilan v = √(2gH) qonuniga muvofiq tezlik ortadi; ideal suyuqlik uchun bu tezlik zichlikka bog‘liq emas."
     };
   }
 

@@ -703,10 +703,27 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <li>Yuk</li>
             <li>Bosim o‘lchagich</li>
             <li>Chizg‘ich</li>
+            <li>Suyuqlik (11 tur)</li>
           </ul>
         </div>
         <div class="card">
           <h3>Boshqarish</h3>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l2-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
+            </select>
+          </div>
           <div class="control">
             <div class="row"><span class="name">Kichik porshenga kuch, F₁</span><output id="l2-f1-out">100 N</output></div>
             <input id="l2-f1" type="range" min="10" max="500" step="5" value="100">
@@ -739,13 +756,14 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <tr><td>Katta porshen yo‘li, s₂</td><td><b id="l2-s2">0,67</b><span class="unit">sm</span></td></tr>
               <tr><td>Bajarilgan ish, W</td><td><b id="l2-work">6,0</b><span class="unit">J</span></td></tr>
               <tr><td>Ko‘tarilgan massa</td><td><b id="l2-mass">91,7</b><span class="unit">kg</span></td></tr>
+              <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l2-rho">1000</b><span class="unit">kg/m³</span></td></tr>
             </tbody>
           </table>
         </div>
         <div class="card">
           <h3>Hisoblash</h3>
           <div class="calc-box" id="l2-calc"></div>
-          <p class="hint">Paskal qonuni: yopiq suyuqlikka berilgan bosim uning barcha nuqtalariga bir xil uzatiladi.</p>
+          <p class="hint">Paskal qonuni: yopiq suyuqlikka berilgan bosim uning barcha nuqtalariga bir xil uzatiladi. Suyuqlik turi o‘zgarsa ham uzatilgan bosim <b>p = F₁/A₁</b> o‘zgarmaydi.</p>
           <button class="btn primary report-btn" data-report="2">Hisobotni yuklab olish (.txt)</button>
         </div>
       </aside>
@@ -861,13 +879,29 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <li>O‘lchov chizg‘ichi</li>
             <li>Sekundomer</li>
             <li>O‘lchov vannasi, 2 L</li>
-            <li>Suv</li>
+            <li>Suyuqlik (11 tur)</li>
           </ul>
         </div>
         <div class="card">
           <h3>Boshqarish</h3>
           <div class="control">
-            <div class="row"><span class="name">Suv sathi balandligi, H</span><output id="l4-h-out">0,80 m</output></div>
+            <div class="row"><span class="name">Suyuqlik</span></div>
+            <select id="l4-liquid">
+              <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
+              <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
+              <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
+            </select>
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">Suyuqlik sathi balandligi, H</span><output id="l4-h-out">0,80 m</output></div>
             <input id="l4-h" type="range" min="0.2" max="1.2" step="0.02" value="0.80">
           </div>
           <div class="control">
@@ -875,14 +909,14 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <input id="l4-d" type="range" min="2" max="10" step="0.5" value="6">
           </div>
           <button class="btn wide" id="l4-reset">Sekundomerni tiklash</button>
-          <p class="hint">Sekundomer laboratoriya ochiq turganda ishlaydi. Vana 2 L to‘lganda avtomatik to‘xtaydi.</p>
+          <p class="hint">Sekundomer laboratoriya ochiq turganda ishlaydi. Vana 2 L to‘lganda avtomatik to‘xtaydi. Ideal suyuqlik uchun <b>v = √(2gH)</b> zichlikka bog‘liq emas.</p>
         </div>
         <div class="card">
           <h3>O‘lchov natijalari</h3>
           <div class="big-result"><b id="l4-big">3,96 m/s</b><small>teshikdan oqish tezligi, v</small></div>
           <table class="readout">
             <tbody>
-              <tr><td>Suv sathi, H</td><td><b id="l4-h-val">0,80</b><span class="unit">m</span></td></tr>
+              <tr><td>Suyuqlik sathi, H</td><td><b id="l4-h-val">0,80</b><span class="unit">m</span></td></tr>
               <tr><td>Teshik diametri, d</td><td><b id="l4-d-val">6,0</b><span class="unit">mm</span></td></tr>
               <tr><td>Teshik yuzasi, A</td><td><b id="l4-a-mm">28,3</b><span class="unit">mm²</span></td></tr>
               <tr><td>Teshik yuzasi, A</td><td><b id="l4-a-m">2,83·10⁻⁵</b><span class="unit">m²</span></td></tr>
@@ -893,6 +927,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <tr><td>Oqim masofasi, x</td><td><b id="l4-range">1,83</b><span class="unit">m</span></td></tr>
               <tr><td>O‘tgan vaqt, t</td><td><b id="l4-time">0,0</b><span class="unit">s</span></td></tr>
               <tr class="accent"><td>Yig‘ilgan hajm, V</td><td><b id="l4-vol">0,00</b><span class="unit">L</span></td></tr>
+              <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l4-rho">1000</b><span class="unit">kg/m³</span></td></tr>
             </tbody>
           </table>
         </div>
