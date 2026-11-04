@@ -1961,9 +1961,9 @@ const lab6 = (() => {
   const CY = 318;
 
   const st = {
-    q: 8, d1: 120, dm1: 85, d2: 50, dm2: 85, liquid: "water",
-    Q: 0, A1: 0, Am1: 0, A2: 0, Am2: 0, v1: 0, vm1: 0, v2: 0, vm2: 0, rho: 1000,
-    p1: 40, pm1: 0, p2: 0, pm2: 0, dp: 0, dpIdeal: 0, cav: false, k: 0,
+    q: 8, dw: 120, d1: 85, d2: 50, d3: 85, liquid: "water",
+    Q: 0, Aw: 0, A1: 0, A2: 0, A3: 0, vw: 0, v1: 0, v2: 0, v3: 0, rho: 1000,
+    pw: 40, p1: 0, p2: 0, p3: 0, dp: 0, dpIdeal: 0, cav: false, k: 0,
     sections: [],
     parts: []
   };
@@ -1977,79 +1977,80 @@ const lab6 = (() => {
 
   const el = {
     q: $("l6-q"), qOut: $("l6-q-out"),
-    d1: $("l6-d1"), d1Out: $("l6-d1-out"),
-    dm1: $("l6-dm1"), dm1Out: $("l6-dm1-out"),
+    dw: $("l6-d1"), dwOut: $("l6-d1-out"),
+    d1: $("l6-dm1"), d1Out: $("l6-dm1-out"),
     d2: $("l6-d2"), d2Out: $("l6-d2-out"),
-    dm2: $("l6-dm2"), dm2Out: $("l6-dm2-out"),
+    d3: $("l6-dm2"), d3Out: $("l6-dm2-out"),
     liquid: $("l6-liquid"),
     calc: $("l6-calc")
   };
 
   function syncDiameters() {
-    const d1 = +el.d1.value;
-    const throatMax = Math.min(80, d1 - 20);
+    const dw = +el.dw.value;
+    const throatMax = Math.min(80, dw - 20);
     el.d2.max = String(throatMax);
     if (+el.d2.value > throatMax) el.d2.value = String(throatMax);
 
     const throat = +el.d2.value;
-    [el.dm1, el.dm2].forEach(inp => {
+    [el.d1, el.d3].forEach(inp => {
       inp.min = String(throat);
-      inp.max = String(d1);
+      inp.max = String(dw);
       if (+inp.value < throat) inp.value = String(throat);
-      if (+inp.value > d1) inp.value = String(d1);
+      if (+inp.value > dw) inp.value = String(dw);
     });
   }
 
   function compute() {
     syncDiameters();
     st.q = +el.q.value;
+    st.dw = +el.dw.value;
     st.d1 = +el.d1.value;
-    st.dm1 = +el.dm1.value;
     st.d2 = +el.d2.value;
-    st.dm2 = +el.dm2.value;
+    st.d3 = +el.d3.value;
     st.liquid = el.liquid.value;
 
     const li = LIQUIDS[st.liquid];
     st.rho = li.rho;
     st.Q = st.q / 1000;
+    st.Aw = Math.PI * Math.pow(st.dw / 1000, 2) / 4;
     st.A1 = Math.PI * Math.pow(st.d1 / 1000, 2) / 4;
-    st.Am1 = Math.PI * Math.pow(st.dm1 / 1000, 2) / 4;
     st.A2 = Math.PI * Math.pow(st.d2 / 1000, 2) / 4;
-    st.Am2 = Math.PI * Math.pow(st.dm2 / 1000, 2) / 4;
+    st.A3 = Math.PI * Math.pow(st.d3 / 1000, 2) / 4;
+    st.vw = st.Q / st.Aw;
     st.v1 = st.Q / st.A1;
-    st.vm1 = st.Q / st.Am1;
     st.v2 = st.Q / st.A2;
-    st.vm2 = st.Q / st.Am2;
-    st.p1 = 40;
-    st.pm1 = Math.max(0, st.p1 - 0.5 * st.rho * (st.vm1 * st.vm1 - st.v1 * st.v1) / 1000);
-    st.dpIdeal = 0.5 * st.rho * (st.v2 * st.v2 - st.v1 * st.v1) / 1000;
-    st.p2 = Math.max(0, st.p1 - st.dpIdeal);
-    st.dp = st.p1 - st.p2;
-    st.cav = st.p1 - st.dpIdeal < 0;
-    st.pm2 = Math.max(0, st.p1 - 0.5 * st.rho * (st.vm2 * st.vm2 - st.v1 * st.v1) / 1000);
-    st.k = st.v2 / st.v1;
+    st.v3 = st.Q / st.A3;
+
+    const k = st.rho / 2000;
+    st.pw = 40;
+    st.p1 = Math.max(0, st.pw - k * (st.v1 * st.v1 - st.vw * st.vw));
+    st.dpIdeal = k * (st.v2 * st.v2 - st.vw * st.vw);
+    st.p2 = Math.max(0, st.pw - st.dpIdeal);
+    st.p3 = Math.max(0, st.pw - k * (st.v3 * st.v3 - st.vw * st.vw));
+    st.dp = st.pw - st.p2;
+    st.cav = st.pw - st.dpIdeal < 0;
+    st.k = st.v2 / st.vw;
     st.sections = [
       { d: st.d1, A: st.A1, v: st.v1, p: st.p1 },
-      { d: st.dm1, A: st.Am1, v: st.vm1, p: st.pm1 },
       { d: st.d2, A: st.A2, v: st.v2, p: st.p2 },
-      { d: st.dm2, A: st.Am2, v: st.vm2, p: st.pm2 }
+      { d: st.d3, A: st.A3, v: st.v3, p: st.p3 }
     ];
 
     el.qOut.textContent = fmt(st.q, 1) + " L/s";
+    el.dwOut.textContent = fmt(st.dw, 0) + " mm";
     el.d1Out.textContent = fmt(st.d1, 0) + " mm";
-    el.dm1Out.textContent = fmt(st.dm1, 0) + " mm";
     el.d2Out.textContent = fmt(st.d2, 0) + " mm";
-    el.dm2Out.textContent = fmt(st.dm2, 0) + " mm";
+    el.d3Out.textContent = fmt(st.d3, 0) + " mm";
 
-    setText("l6-rd1", fmt(st.d1, 0));
+    setText("l6-rd1", fmt(st.dw, 0));
     setText("l6-rd2", fmt(st.d2, 0));
-    setText("l6-a1", fmt(st.A1 * 1e4, 1));
+    setText("l6-a1", fmt(st.Aw * 1e4, 1));
     setText("l6-a2", fmt(st.A2 * 1e4, 1));
     setText("l6-rq", fmt(st.q, 1));
-    setText("l6-v1", fmt(st.v1, 2));
+    setText("l6-v1", fmt(st.vw, 2));
     setText("l6-v2", fmt(st.v2, 2));
     setText("l6-k", fmt(st.k, 2));
-    setText("l6-p1", fmt(st.p1, 1));
+    setText("l6-p1", fmt(st.pw, 1));
     setText("l6-p2", fmt(st.p2, 1));
     setText("l6-dp", fmt(st.dp, 1));
     setText("l6-rho", fmt(st.rho, 0));
@@ -2065,30 +2066,30 @@ const lab6 = (() => {
 
     el.calc.textContent =
       "Q = " + fmt(st.q, 1) + " L/s = " + sci(st.Q, 3) + " m³/s\n\n" +
-      "1-kesim: d₁ = " + fmt(st.d1, 0) + " mm\n" +
-      "A₁ = πd₁²/4 = " + fmt(st.A1 * 1e4, 1) + " sm² = " + sci(st.A1, 3) + " m²\n" +
-      "v₁ = Q/A₁ = " + fmt(st.v1, 3) + " m/s; p₁ = " + fmt(st.p1, 1) + " kPa\n\n" +
-      "2-kesim: d₂′ = " + fmt(st.dm1, 0) + " mm\n" +
-      "A₂′ = " + fmt(st.Am1 * 1e4, 1) + " sm²; v₂′ = Q/A₂′ = " + fmt(st.vm1, 3) + " m/s\n" +
-      "p₂′ = p₁ − ½ρ(v₂′² − v₁²) = " + fmt(st.pm1, 1) + " kPa\n\n" +
-      "3-kesim: d₂ = " + fmt(st.d2, 0) + " mm\n" +
-      "A₂ = πd₂²/4 = " + fmt(st.A2 * 1e4, 1) + " sm² = " + sci(st.A2, 3) + " m²\n" +
-      "v₂ = Q/A₂ = " + fmt(st.v2, 3) + " m/s; p₂ = " + fmt(st.p2, 1) + " kPa\n\n" +
-      "4-kesim: d₄′ = " + fmt(st.dm2, 0) + " mm\n" +
-      "A₄′ = " + fmt(st.Am2 * 1e4, 1) + " sm²; v₄′ = Q/A₄′ = " + fmt(st.vm2, 3) + " m/s\n" +
-      "p₄′ = p₁ − ½ρ(v₄′² − v₁²) = " + fmt(st.pm2, 1) + " kPa\n\n" +
-      "A₁v₁ = A₂′v₂′ = A₂v₂ = A₄′v₄′ = Q — sarf o‘zgarmaydi.\n" +
-      "p₁ + ½ρv₁² = p₂ + ½ρv₂²\n" +
-      "p₂ = " + fmt(st.p1, 1) + " − " + fmt(st.dpIdeal, 2) + " = " + fmt(st.p1 - st.dpIdeal, 1) + " kPa" +
+      "Keng quvur: D = " + fmt(st.dw, 0) + " mm\n" +
+      "A₀ = πD²/4 = " + fmt(st.Aw * 1e4, 1) + " sm² = " + sci(st.Aw, 3) + " m²\n" +
+      "v₀ = Q/A₀ = " + fmt(st.vw, 3) + " m/s; p₀ = " + fmt(st.pw, 1) + " kPa\n\n" +
+      "1-bo‘g‘in (torayish): d₁ = " + fmt(st.d1, 0) + " mm\n" +
+      "A₁ = " + fmt(st.A1 * 1e4, 1) + " sm²; v₁ = Q/A₁ = " + fmt(st.v1, 3) + " m/s\n" +
+      "p₁ = p₀ − ½ρ(v₁² − v₀²) = " + fmt(st.p1, 1) + " kPa\n\n" +
+      "2-bo‘g‘in (tor quvur): d₂ = " + fmt(st.d2, 0) + " mm\n" +
+      "A₂ = " + fmt(st.A2 * 1e4, 1) + " sm²; v₂ = Q/A₂ = " + fmt(st.v2, 3) + " m/s\n" +
+      "p₂ = p₀ − ½ρ(v₂² − v₀²) = " + fmt(st.p2, 1) + " kPa\n\n" +
+      "3-bo‘g‘in (kengayish): d₃ = " + fmt(st.d3, 0) + " mm\n" +
+      "A₃ = " + fmt(st.A3 * 1e4, 1) + " sm²; v₃ = Q/A₃ = " + fmt(st.v3, 3) + " m/s\n" +
+      "p₃ = p₀ − ½ρ(v₃² − v₀²) = " + fmt(st.p3, 1) + " kPa\n\n" +
+      "A₀v₀ = A₁v₁ = A₂v₂ = A₃v₃ = Q — sarf o‘zgarmaydi.\n" +
+      "p₀ + ½ρv₀² = p₂ + ½ρv₂²\n" +
+      "p₂ = " + fmt(st.pw, 1) + " − " + fmt(st.dpIdeal, 2) + " = " + fmt(st.pw - st.dpIdeal, 1) + " kPa" +
       (st.cav ? " → 0 kPa (manfiy bosim bo‘lmaydi)" : "") + "\n" +
-      "Δp = p₁ − p₂ = " + fmt(st.dp, 2) + " kPa";
+      "Δp = p₀ − p₂ = " + fmt(st.dp, 2) + " kPa";
   }
 
   el.q.addEventListener("input", compute);
+  el.dw.addEventListener("input", compute);
   el.d1.addEventListener("input", compute);
-  el.dm1.addEventListener("input", compute);
   el.d2.addEventListener("input", compute);
-  el.dm2.addEventListener("input", compute);
+  el.d3.addEventListener("input", compute);
   el.liquid.addEventListener("input", compute);
   compute();
 
@@ -2109,12 +2110,12 @@ const lab6 = (() => {
     drawBg(ctx6, "6", "Bernulli qonuni va Venturi effekti");
 
     const li = LIQUIDS[st.liquid];
-    const r1 = clamp(st.d1 * 0.26, 24, 36);
-    const rm1 = clamp(st.dm1 * 0.26, 10, 36);
+    const r1 = clamp(st.dw * 0.26, 24, 36);
+    const rm1 = clamp(st.d1 * 0.26, 10, 36);
     const r2 = clamp(st.d2 * 0.26, 10, 21);
-    const rm2 = clamp(st.dm2 * 0.26, 10, 36);
+    const rm2 = clamp(st.d3 * 0.26, 10, 36);
     const rad = (x) => radiusAt(x, r1, rm1, r2, rm2);
-    const vLocal = (x) => st.v1 * Math.pow(r1 / rad(x), 2);
+    const vLocal = (x) => st.vw * Math.pow(r1 / rad(x), 2);
 
     st.parts.forEach(p => {
       p.x += vLocal(p.x) * 40 * dt;
@@ -2178,10 +2179,10 @@ const lab6 = (() => {
     ctx6.beginPath(); ctx6.moveTo(IN, CY); ctx6.lineTo(OUT, CY); ctx6.stroke();
     ctx6.setLineDash([]);
 
-    const secX = [S1, (C0 + C1) / 2, S2, (C2 + C3) / 2];
+    const secX = [(C0 + C1) / 2, S2, (C2 + C3) / 2];
     secX.forEach((x, i) => {
       const r = rad(x);
-      const col = i === 2 ? "#9ff0e7" : "#a9d2ff";
+      const col = i === 1 ? "#9ff0e7" : "#a9d2ff";
       ctx6.setLineDash([3, 4]);
       ctx6.strokeStyle = "rgba(230,250,255,.24)";
       ctx6.lineWidth = 1;
@@ -2204,10 +2205,10 @@ const lab6 = (() => {
       });
     });
 
-    text(ctx6, "torayish bo‘g‘ini", (C0 + C1) / 2, CY - r1 - 20, {
+    text(ctx6, "1-bo‘g‘in · torayish", (C0 + C1) / 2, CY - r1 - 20, {
       size: 9.5, color: "rgba(150,205,225,.55)", align: "center"
     });
-    text(ctx6, "kengayish bo‘g‘ini", (C2 + C3) / 2, CY - r1 - 20, {
+    text(ctx6, "3-bo‘g‘in · kengayish", (C2 + C3) / 2, CY - r1 - 20, {
       size: 9.5, color: "rgba(150,205,225,.55)", align: "center"
     });
 
@@ -2266,7 +2267,7 @@ const lab6 = (() => {
       });
     }
 
-    manometer(S1, st.p1, "p₁ = " + fmt(st.p1, 1) + " kPa", "left");
+    manometer(S1, st.pw, "p₀ = " + fmt(st.pw, 1) + " kPa", "left");
     manometer(S2, st.p2, "p₂ = " + fmt(st.p2, 1) + " kPa", "right");
 
     const ya = CY + 72;
@@ -2278,14 +2279,14 @@ const lab6 = (() => {
       });
     }
 
-    velocityArrow(118, st.v1, "v₁ = " + fmt(st.v1, 2) + " m/s", "#8fd8ff");
+    velocityArrow(118, st.vw, "v₀ = " + fmt(st.vw, 2) + " m/s", "#8fd8ff");
     velocityArrow(420, st.v2, "v₂ = " + fmt(st.v2, 2) + " m/s", "#9ff0e7");
-    velocityArrow(748, st.v1, "v₁ = " + fmt(st.v1, 2) + " m/s", "#8fd8ff");
+    velocityArrow(748, st.vw, "v₀ = " + fmt(st.vw, 2) + " m/s", "#8fd8ff");
 
     text(ctx6, li.name + " · ρ = " + fmt(li.rho, 0) + " kg/m³", 30, 88, {
       size: 10.5, color: "rgba(160,205,225,.65)"
     });
-    text(ctx6, "Q = " + fmt(st.q, 1) + " L/s · d₁ " + fmt(st.d1, 0) + " / d₂′ " + fmt(st.dm1, 0) + " / d₂ " + fmt(st.d2, 0) + " / d₄′ " + fmt(st.dm2, 0) + " mm", 30, 105, {
+    text(ctx6, "Q = " + fmt(st.q, 1) + " L/s · D " + fmt(st.dw, 0) + " / d₁ " + fmt(st.d1, 0) + " / d₂ " + fmt(st.d2, 0) + " / d₃ " + fmt(st.d3, 0) + " mm", 30, 105, {
       size: 10.5, color: "rgba(160,205,225,.55)", mono: true
     });
 
@@ -2293,16 +2294,16 @@ const lab6 = (() => {
       size: 9.5, color: "rgba(79,209,197,.7)", align: "center", weight: 700
     });
 
-    pill(ctx6, CW - 30, 86, "TORAYISH: v ↑ · p ↓", {
+    pill(ctx6, CW - 30, 86, "1-BO‘G‘IN: v ↑ · p ↓", {
       align: "right", bg: "rgba(90,169,255,.08)", border: "rgba(90,169,255,.3)",
       color: "#a9d2ff", size: 10, h: 23
     });
-    pill(ctx6, CW - 30, 118, "KENGAYISH: v ↓ · p ↑", {
+    pill(ctx6, CW - 30, 118, "3-BO‘G‘IN: v ↓ · p ↑", {
       align: "right", bg: "rgba(246,184,75,.07)", border: "rgba(246,184,75,.26)",
       color: "#f6cf82", size: 10, h: 23
     });
 
-    pill(ctx6, 390, 414, "p₁ − p₂ = " + fmt(st.dp, 1) + " kPa", {
+    pill(ctx6, 390, 414, "p₀ − p₂ = " + fmt(st.dp, 1) + " kPa", {
       bg: "rgba(12,32,46,.9)", border: "rgba(79,209,197,.3)",
       color: "#9ff0e7", size: 11.5, h: 26, pad: 12
     });
@@ -2310,10 +2311,10 @@ const lab6 = (() => {
     text(ctx6, "Torayishda tezlik ortadi, bosim kamayadi — kengayishda tezlik kamayib, bosim ortadi.", CW / 2, 468, {
       size: 11.5, color: "rgba(205,230,242,.82)", align: "center"
     });
-    text(ctx6, "A₁v₁ = A₂v₂ = A₃v₃ = A₄v₄ = Q   ·   p + ½ρv² = const", CW / 2, 492, {
+    text(ctx6, "A₀v₀ = A₁v₁ = A₂v₂ = A₃v₃ = Q   ·   p + ½ρv² = const", CW / 2, 492, {
       size: 10.5, color: "rgba(155,205,225,.62)", align: "center", mono: true
     });
-    text(ctx6, "1–4 — kesimlar. Ideal suyuqlik; ishqalanish hisobga olinmagan, ustunlar shartli masshtabda.", CW / 2, 516, {
+    text(ctx6, "1–3 — bo‘g‘inlar. Ideal suyuqlik; ishqalanish hisobga olinmagan, ustunlar shartli masshtabda.", CW / 2, 516, {
       size: 9.5, color: "rgba(150,195,215,.42)", align: "center"
     });
   }
@@ -2327,43 +2328,39 @@ const lab6 = (() => {
       rows: [
         ["Suyuqlik", li.name + ", ρ = " + fmt(st.rho, 0) + " kg/m³"],
         ["Hajmiy sarf, Q", fmt(st.q, 1) + " L/s = " + sci(st.Q, 3) + " m³/s"],
-        ["1-kesim diametri, d₁", fmt(st.d1, 0) + " mm"],
-        ["2-kesim diametri, d₂′", fmt(st.dm1, 0) + " mm"],
-        ["3-kesim diametri, d₂", fmt(st.d2, 0) + " mm"],
-        ["4-kesim diametri, d₄′", fmt(st.dm2, 0) + " mm"],
-        ["Keng qism yuzasi, A₁", fmt(st.A1 * 1e4, 1) + " sm² = " + sci(st.A1, 3) + " m²"],
-        ["Toraygan qism yuzasi, A₂", fmt(st.A2 * 1e4, 1) + " sm² = " + sci(st.A2, 3) + " m²"],
-        ["Keng qismda tezlik, v₁", fmt(st.v1, 3) + " m/s"],
-        ["Toraygan qismda tezlik, v₂", fmt(st.v2, 3) + " m/s"],
-        ["Tezlik nisbati, v₂/v₁", fmt(st.k, 2) + " marta"],
-        ["Keng qismda bosim, p₁", fmt(st.p1, 1) + " kPa"],
-        ["Toraygan qismda bosim, p₂", fmt(st.p2, 1) + " kPa"],
+        ["Keng quvur diametri, D", fmt(st.dw, 0) + " mm"],
+        ["1-bo‘g‘in diametri, d₁", fmt(st.d1, 0) + " mm"],
+        ["2-bo‘g‘in diametri, d₂", fmt(st.d2, 0) + " mm"],
+        ["3-bo‘g‘in diametri, d₃", fmt(st.d3, 0) + " mm"],
+        ["Keng quvur yuzasi, A₀", fmt(st.Aw * 1e4, 1) + " sm² = " + sci(st.Aw, 3) + " m²"],
+        ["Tor quvur yuzasi, A₂", fmt(st.A2 * 1e4, 1) + " sm² = " + sci(st.A2, 3) + " m²"],
+        ["Keng quvurda tezlik, v₀", fmt(st.vw, 3) + " m/s"],
+        ["Tor quvurda tezlik, v₂", fmt(st.v2, 3) + " m/s"],
+        ["Tezlik nisbati, v₂/v₀", fmt(st.k, 2) + " marta"],
+        ["Keng quvurda bosim, p₀", fmt(st.pw, 1) + " kPa"],
+        ["Tor quvurda bosim, p₂", fmt(st.p2, 1) + " kPa"],
         ["Bosim farqi, Δp", fmt(st.dp, 1) + " kPa"],
-        ["Kesimlar jadvali", "d, mm · A, sm² · v, m/s · p, kPa"],
-        ["1-kesim — keng kirish", fmt(st.sections[0].d, 0) + " · " + fmt(st.sections[0].A * 1e4, 1) + " · " + fmt(st.sections[0].v, 2) + " · " + fmt(st.sections[0].p, 1)],
-        ["2-kesim — torayish bo‘g‘ini", fmt(st.sections[1].d, 0) + " · " + fmt(st.sections[1].A * 1e4, 1) + " · " + fmt(st.sections[1].v, 2) + " · " + fmt(st.sections[1].p, 1)],
-        ["3-kesim — tor bo‘yin", fmt(st.sections[2].d, 0) + " · " + fmt(st.sections[2].A * 1e4, 1) + " · " + fmt(st.sections[2].v, 2) + " · " + fmt(st.sections[2].p, 1)],
-        ["4-kesim — kengayish bo‘g‘ini", fmt(st.sections[3].d, 0) + " · " + fmt(st.sections[3].A * 1e4, 1) + " · " + fmt(st.sections[3].v, 2) + " · " + fmt(st.sections[3].p, 1)]
+        ["Bo‘g‘inlar jadvali", "d, mm · A, sm² · v, m/s · p, kPa"],
+        ["1-bo‘g‘in — torayish", fmt(st.sections[0].d, 0) + " · " + fmt(st.sections[0].A * 1e4, 1) + " · " + fmt(st.sections[0].v, 2) + " · " + fmt(st.sections[0].p, 1)],
+        ["2-bo‘g‘in — tor quvur", fmt(st.sections[1].d, 0) + " · " + fmt(st.sections[1].A * 1e4, 1) + " · " + fmt(st.sections[1].v, 2) + " · " + fmt(st.sections[1].p, 1)],
+        ["3-bo‘g‘in — kengayish", fmt(st.sections[2].d, 0) + " · " + fmt(st.sections[2].A * 1e4, 1) + " · " + fmt(st.sections[2].v, 2) + " · " + fmt(st.sections[2].p, 1)]
       ],
       calc: [
-        "1-kesim: d₁ = " + fmt(st.d1, 0) + " mm",
-        "A₁ = πd₁²/4 = " + fmt(st.A1 * 1e4, 1) + " sm² = " + sci(st.A1, 3) + " m²",
+        "Keng quvur: D = " + fmt(st.dw, 0) + " mm",
+        "A₀ = πD²/4 = " + fmt(st.Aw * 1e4, 1) + " sm² = " + sci(st.Aw, 3) + " m²",
+        "v₀ = Q/A₀ = " + fmt(st.vw, 3) + " m/s; p₀ = " + fmt(st.pw, 1) + " kPa",
+        "1-bo‘g‘in: d₁ = " + fmt(st.d1, 0) + " mm; A₁ = " + fmt(st.A1 * 1e4, 1) + " sm²",
         "v₁ = Q/A₁ = " + fmt(st.v1, 3) + " m/s; p₁ = " + fmt(st.p1, 1) + " kPa",
-        "2-kesim: d₂′ = " + fmt(st.dm1, 0) + " mm",
-        "A₂′ = " + fmt(st.Am1 * 1e4, 1) + " sm²; v₂′ = Q/A₂′ = " + fmt(st.vm1, 3) + " m/s",
-        "p₂′ = p₁ − ½ρ(v₂′² − v₁²) = " + fmt(st.pm1, 1) + " kPa",
-        "3-kesim: d₂ = " + fmt(st.d2, 0) + " mm",
-        "A₂ = πd₂²/4 = " + fmt(st.A2 * 1e4, 1) + " sm² = " + sci(st.A2, 3) + " m²",
+        "2-bo‘g‘in: d₂ = " + fmt(st.d2, 0) + " mm; A₂ = " + fmt(st.A2 * 1e4, 1) + " sm²",
         "v₂ = Q/A₂ = " + fmt(st.v2, 3) + " m/s; p₂ = " + fmt(st.p2, 1) + " kPa",
-        "4-kesim: d₄′ = " + fmt(st.dm2, 0) + " mm",
-        "A₄′ = " + fmt(st.Am2 * 1e4, 1) + " sm²; v₄′ = Q/A₄′ = " + fmt(st.vm2, 3) + " m/s",
-        "p₄′ = p₁ − ½ρ(v₄′² − v₁²) = " + fmt(st.pm2, 1) + " kPa",
-        "A₁v₁ = A₂′v₂′ = A₂v₂ = A₄′v₄′ = Q — uzluksizlik tenglamasi.",
-        "p₂ = " + fmt(st.p1, 1) + " − " + fmt(st.dpIdeal, 2) + " = " + fmt(st.p1 - st.dpIdeal, 1) + " kPa" +
+        "3-bo‘g‘in: d₃ = " + fmt(st.d3, 0) + " mm; A₃ = " + fmt(st.A3 * 1e4, 1) + " sm²",
+        "v₃ = Q/A₃ = " + fmt(st.v3, 3) + " m/s; p₃ = " + fmt(st.p3, 1) + " kPa",
+        "A₀v₀ = A₁v₁ = A₂v₂ = A₃v₃ = Q — uzluksizlik tenglamasi.",
+        "p₂ = " + fmt(st.pw, 1) + " − " + fmt(st.dpIdeal, 2) + " = " + fmt(st.pw - st.dpIdeal, 1) + " kPa" +
           (st.cav ? " → 0 kPa (manfiy bosim bo‘lmaydi)" : ""),
-        "Δp = p₁ − p₂ = " + fmt(st.dp, 2) + " kPa"
+        "Δp = p₀ − p₂ = " + fmt(st.dp, 2) + " kPa"
       ],
-      conclusion: "Quvur to‘rt kesimga bo‘lindi va har bir kesim diametri alohida o‘rnatildi: keng kirish " + fmt(st.d1, 0) + " mm, torayish bo‘g‘ini " + fmt(st.dm1, 0) + " mm, tor bo‘yin " + fmt(st.d2, 0) + " mm, kengayish bo‘g‘ini " + fmt(st.dm2, 0) + " mm. Barcha kesimlarda A·v = Q o‘zgarmaydi, shu sababli " + fmt(st.d1, 0) + " mm dan " + fmt(st.d2, 0) + " mm gacha torayganda tezlik " + fmt(st.k, 2) + " marta ortib, " + fmt(st.v2, 2) + " m/s ga yetdi, bosim esa " + fmt(st.dp, 2) + " kPa ga kamayib, eng kichik qiymatga tushdi. Kengayish bo‘g‘inida teskari jarayon kuzatiladi: tezlik kamayadi, bosim ortadi."
+      conclusion: "Quvur uch bo‘g‘inga bo‘lindi va har birining diametri alohida o‘rnatildi: torayish d₁ = " + fmt(st.d1, 0) + " mm, tor quvur d₂ = " + fmt(st.d2, 0) + " mm, kengayish d₃ = " + fmt(st.d3, 0) + " mm. Barcha bo‘g‘inlarda A·v = Q o‘zgarmaydi, shu sababli " + fmt(st.dw, 0) + " mm dan " + fmt(st.d2, 0) + " mm gacha torayganda tezlik " + fmt(st.k, 2) + " marta ortib, " + fmt(st.v2, 2) + " m/s ga yetdi, bosim esa " + fmt(st.dp, 2) + " kPa ga kamayib, eng kichik qiymatga tushdi. Kengayish bo‘g‘inida teskari jarayon kuzatiladi: tezlik kamayadi, bosim ortadi."
     };
   }
 

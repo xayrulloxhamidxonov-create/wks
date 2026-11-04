@@ -1041,75 +1041,71 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <input id="l6-q" type="range" min="4" max="10" step="0.5" value="8">
           </div>
           <div class="control">
-            <div class="row"><span class="name">1-kesim diametri, d₁</span><output id="l6-d1-out">120 mm</output></div>
+            <div class="row"><span class="name">Keng quvur diametri, D</span><output id="l6-d1-out">120 mm</output></div>
             <input id="l6-d1" type="range" min="100" max="140" step="5" value="120">
           </div>
           <div class="control">
-            <div class="row"><span class="name">2-kesim diametri, d₂′</span><output id="l6-dm1-out">85 mm</output></div>
+            <div class="row"><span class="name">1-bo‘g‘in diametri, d₁</span><output id="l6-dm1-out">85 mm</output></div>
             <input id="l6-dm1" type="range" min="50" max="120" step="5" value="85">
           </div>
           <div class="control">
-            <div class="row"><span class="name">3-kesim diametri, d₂</span><output id="l6-d2-out">50 mm</output></div>
+            <div class="row"><span class="name">2-bo‘g‘in diametri, d₂</span><output id="l6-d2-out">50 mm</output></div>
             <input id="l6-d2" type="range" min="40" max="80" step="5" value="50">
           </div>
           <div class="control">
-            <div class="row"><span class="name">4-kesim diametri, d₄′</span><output id="l6-dm2-out">85 mm</output></div>
+            <div class="row"><span class="name">3-bo‘g‘in diametri, d₃</span><output id="l6-dm2-out">85 mm</output></div>
             <input id="l6-dm2" type="range" min="50" max="120" step="5" value="85">
           </div>
-          <p class="hint">Har bir kesim diametri alohida sozlanadi. d₂′ va d₄′ qiymatlari <b>d₂ … d₁</b> oralig‘ida bo‘ladi, d₂ esa d₁ dan kamida <b>20 mm</b> kichik. Keng qismdagi bosim p₁ = <b>40 kPa</b>.</p>
+          <p class="hint">Uch bo‘g‘in: torayish, tor quvur va kengayish — har birining diametri alohida sozlanadi. d₁ va d₃ qiymatlari <b>d₂ … D</b> oralig‘ida bo‘ladi, d₂ esa D dan kamida <b>20 mm</b> kichik. Keng quvurdagi bosim p₀ = <b>40 kPa</b>.</p>
         </div>
         <div class="card">
           <h3>O‘lchov natijalari</h3>
-          <div class="big-result"><b id="l6-big">4,07 m/s</b><small>toraygan qismdagi tezlik</small></div>
+          <div class="big-result"><b id="l6-big">4,07 m/s</b><small>tor quvurdagi tezlik</small></div>
           <table class="readout">
             <tbody>
-              <tr><td>1-kesim diametri, d₁</td><td><b id="l6-rd1">120</b><span class="unit">mm</span></td></tr>
-              <tr><td>3-kesim diametri, d₂</td><td><b id="l6-rd2">50</b><span class="unit">mm</span></td></tr>
-              <tr><td>Keng qism yuzasi, A₁</td><td><b id="l6-a1">113,1</b><span class="unit">sm²</span></td></tr>
-              <tr><td>Toraygan qism yuzasi, A₂</td><td><b id="l6-a2">19,6</b><span class="unit">sm²</span></td></tr>
+              <tr><td>Keng quvur diametri, D</td><td><b id="l6-rd1">120</b><span class="unit">mm</span></td></tr>
+              <tr><td>Tor quvur diametri, d₂</td><td><b id="l6-rd2">50</b><span class="unit">mm</span></td></tr>
+              <tr><td>Keng quvur yuzasi, A₀</td><td><b id="l6-a1">113,1</b><span class="unit">sm²</span></td></tr>
+              <tr><td>Tor quvur yuzasi, A₂</td><td><b id="l6-a2">19,6</b><span class="unit">sm²</span></td></tr>
               <tr><td>Hajmiy sarf, Q</td><td><b id="l6-rq">8,0</b><span class="unit">L/s</span></td></tr>
-              <tr><td>Keng qismda tezlik, v₁</td><td><b id="l6-v1">0,71</b><span class="unit">m/s</span></td></tr>
-              <tr class="accent"><td>Toraygan qismda tezlik, v₂</td><td><b id="l6-v2">4,07</b><span class="unit">m/s</span></td></tr>
-              <tr><td>Tezlik nisbati, v₂/v₁</td><td><b id="l6-k">5,76</b><span class="unit">marta</span></td></tr>
-              <tr><td>Keng qismda bosim, p₁</td><td><b id="l6-p1">40,0</b><span class="unit">kPa</span></td></tr>
-              <tr class="accent"><td>Toraygan qismda bosim, p₂</td><td><b id="l6-p2">31,9</b><span class="unit">kPa</span></td></tr>
+              <tr><td>Keng quvurda tezlik, v₀</td><td><b id="l6-v1">0,71</b><span class="unit">m/s</span></td></tr>
+              <tr class="accent"><td>Tor quvurda tezlik, v₂</td><td><b id="l6-v2">4,07</b><span class="unit">m/s</span></td></tr>
+              <tr><td>Tezlik nisbati, v₂/v₀</td><td><b id="l6-k">5,76</b><span class="unit">marta</span></td></tr>
+              <tr><td>Keng quvurda bosim, p₀</td><td><b id="l6-p1">40,0</b><span class="unit">kPa</span></td></tr>
+              <tr class="accent"><td>Tor quvurda bosim, p₂</td><td><b id="l6-p2">31,9</b><span class="unit">kPa</span></td></tr>
               <tr class="accent"><td>Bosim farqi, Δp</td><td><b id="l6-dp">8,1</b><span class="unit">kPa</span></td></tr>
               <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l6-rho">1000</b><span class="unit">kg/m³</span></td></tr>
             </tbody>
           </table>
         </div>
         <div class="card">
-          <h3>Kesimlar bo‘yicha jadval</h3>
-          <p class="hint">Quvur to‘rt kesimga bo‘lindi: keng kirish, torayish bo‘g‘ini, tor bo‘yin va kengayish bo‘g‘ini.</p>
+          <h3>Bo‘g‘inlar jadvali</h3>
+          <p class="hint">Quvur uch bo‘g‘inga bo‘lindi: torayish, tor quvur va kengayish. Har bir bo‘g‘in diametri alohida sozlanadi.</p>
           <table class="sect-table">
             <thead>
-              <tr><th>Kesim</th><th>d, mm</th><th>A, sm²</th><th>v, m/s</th><th>p, kPa</th></tr>
+              <tr><th>Bo‘g‘in</th><th>d, mm</th><th>A, sm²</th><th>v, m/s</th><th>p, kPa</th></tr>
             </thead>
             <tbody>
               <tr>
-                <td><span class="sect-no">1</span>Keng kirish</td>
-                <td id="sec1-d">120</td><td id="sec1-a">113,1</td><td id="sec1-v">0,71</td><td id="sec1-p">40,0</td>
-              </tr>
-              <tr>
-                <td><span class="sect-no">2</span>Torayish</td>
-                <td id="sec2-d">85</td><td id="sec2-a">56,7</td><td id="sec2-v">1,41</td><td id="sec2-p">39,3</td>
+                <td><span class="sect-no">1</span>Torayish</td>
+                <td id="sec1-d">85</td><td id="sec1-a">56,7</td><td id="sec1-v">1,41</td><td id="sec1-p">39,3</td>
               </tr>
               <tr class="throat">
-                <td><span class="sect-no">3</span>Tor bo‘yin</td>
-                <td id="sec3-d">50</td><td id="sec3-a">19,6</td><td id="sec3-v">4,07</td><td id="sec3-p">32,0</td>
+                <td><span class="sect-no">2</span>Tor quvur</td>
+                <td id="sec2-d">50</td><td id="sec2-a">19,6</td><td id="sec2-v">4,07</td><td id="sec2-p">32,0</td>
               </tr>
               <tr>
-                <td><span class="sect-no">4</span>Kengayish</td>
-                <td id="sec4-d">85</td><td id="sec4-a">56,7</td><td id="sec4-v">1,41</td><td id="sec4-p">39,3</td>
+                <td><span class="sect-no">3</span>Kengayish</td>
+                <td id="sec3-d">85</td><td id="sec3-a">56,7</td><td id="sec3-v">1,41</td><td id="sec3-p">39,3</td>
               </tr>
             </tbody>
           </table>
-          <p class="hint">Har bir kesimda A·v = Q o‘zgarmaydi, bosim esa Bernulli tenglamasidan topiladi. Kesim diametrlarini «Boshqarish» bo‘limida alohida o‘zgartirish mumkin.</p>
+          <p class="hint">Har bir bo‘g‘inda A·v = Q o‘zgarmaydi, bosim esa Bernulli tenglamasidan topiladi.</p>
         </div>
         <div class="card">
           <h3>Hisoblash</h3>
           <div class="calc-box" id="l6-calc"></div>
-          <p class="hint">Uzluksizlik: A₁v₁ = A₂v₂. Bernulli: p₁ + ½ρv₁² = p₂ + ½ρv₂². Gorizontal quvur uchun balandliklar teng.</p>
+          <p class="hint">Uzluksizlik: A₀v₀ = A₁v₁ = A₂v₂ = A₃v₃. Bernulli: p₀ + ½ρv₀² = p₂ + ½ρv₂². Gorizontal quvur uchun balandliklar teng.</p>
           <button class="btn primary report-btn" data-report="6">Hisobotni yuklab olish (.txt)</button>
         </div>
       </aside>
