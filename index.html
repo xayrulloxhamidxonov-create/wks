@@ -331,6 +331,26 @@ select:focus{border-color:rgba(79,209,197,.55)}
 .readout .unit{color:var(--dim);font-size:10px;margin-left:2px}
 .readout tr.accent td{color:var(--teal)}
 .readout tr.accent b{color:#9ff0e7}
+.sect-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.sect-table th{
+  text-align:right;color:var(--dim);font-weight:600;font-size:9px;
+  letter-spacing:.05em;text-transform:uppercase;padding:4px 0 5px;
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.sect-table th:first-child{text-align:left}
+.sect-table td{
+  padding:7px 0;border-bottom:1px solid rgba(150,205,235,.07);
+  color:var(--muted);text-align:right;font-family:var(--mono);white-space:nowrap;
+}
+.sect-table td:first-child{text-align:left;font-family:inherit;padding-right:6px}
+.sect-table tr:last-child td{border-bottom:0}
+.sect-table .sect-no{
+  display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
+  margin-right:5px;font-family:var(--mono);font-size:9px;font-weight:700;
+  color:#a9d2ff;background:rgba(90,169,255,.14);border:1px solid rgba(90,169,255,.3);
+}
+.sect-table tr.throat td{color:#9ff0e7}
+.sect-table tr.throat .sect-no{color:#9ff0e7;background:rgba(79,209,197,.15);border-color:rgba(79,209,197,.34)}
 .state-banner{
   display:flex;align-items:center;gap:8px;
   padding:9px 11px;border-radius:11px;margin-bottom:11px;
@@ -626,6 +646,12 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <option value="spirit">Spirt — 800 kg/m³</option>
               <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
               <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
             </select>
           </div>
           <div class="control">
@@ -767,7 +793,14 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <option value="water">Suv — 1000 kg/m³</option>
               <option value="sea">Dengiz suvi — 1030 kg/m³</option>
               <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
               <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
             </select>
           </div>
           <div class="control">
@@ -910,8 +943,16 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <div class="row"><span class="name">Suyuqlik</span></div>
             <select id="l5-liquid">
               <option value="water">Suv — 1000 kg/m³</option>
+              <option value="sea">Dengiz suvi — 1030 kg/m³</option>
               <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
               <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
             </select>
           </div>
           <div class="control">
@@ -985,7 +1026,14 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <option value="water">Suv — 1000 kg/m³</option>
               <option value="sea">Dengiz suvi — 1030 kg/m³</option>
               <option value="spirit">Spirt — 800 kg/m³</option>
+              <option value="oil">O‘simlik yog‘i — 920 kg/m³</option>
               <option value="glycerin">Gliserin — 1260 kg/m³</option>
+              <option value="benzin">Benzin — 730 kg/m³</option>
+              <option value="kerosin">Kerosin — 810 kg/m³</option>
+              <option value="milk">Sut — 1030 kg/m³</option>
+              <option value="brine">Tuz eritmasi — 1150 kg/m³</option>
+              <option value="honey">Asal — 1420 kg/m³</option>
+              <option value="mercury">Simob — 13 600 kg/m³</option>
             </select>
           </div>
           <div class="control">
@@ -993,25 +1041,33 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
             <input id="l6-q" type="range" min="4" max="10" step="0.5" value="8">
           </div>
           <div class="control">
-            <div class="row"><span class="name">Keng qism diametri, d₁</span><output id="l6-d1-out">120 mm</output></div>
+            <div class="row"><span class="name">1-kesim diametri, d₁</span><output id="l6-d1-out">120 mm</output></div>
             <input id="l6-d1" type="range" min="100" max="140" step="5" value="120">
           </div>
           <div class="control">
-            <div class="row"><span class="name">Toraygan qism diametri, d₂</span><output id="l6-d2-out">50 mm</output></div>
+            <div class="row"><span class="name">2-kesim diametri, d₂′</span><output id="l6-dm1-out">85 mm</output></div>
+            <input id="l6-dm1" type="range" min="50" max="120" step="5" value="85">
+          </div>
+          <div class="control">
+            <div class="row"><span class="name">3-kesim diametri, d₂</span><output id="l6-d2-out">50 mm</output></div>
             <input id="l6-d2" type="range" min="40" max="80" step="5" value="50">
           </div>
-          <p class="hint">d₂ har doim d₁ dan kamida <b>20 mm</b> kichik bo‘ladi — torayish sharti saqlanadi. Keng qismdagi bosim p₁ = <b>40 kPa</b>.</p>
+          <div class="control">
+            <div class="row"><span class="name">4-kesim diametri, d₄′</span><output id="l6-dm2-out">85 mm</output></div>
+            <input id="l6-dm2" type="range" min="50" max="120" step="5" value="85">
+          </div>
+          <p class="hint">Har bir kesim diametri alohida sozlanadi. d₂′ va d₄′ qiymatlari <b>d₂ … d₁</b> oralig‘ida bo‘ladi, d₂ esa d₁ dan kamida <b>20 mm</b> kichik. Keng qismdagi bosim p₁ = <b>40 kPa</b>.</p>
         </div>
         <div class="card">
           <h3>O‘lchov natijalari</h3>
           <div class="big-result"><b id="l6-big">4,07 m/s</b><small>toraygan qismdagi tezlik</small></div>
           <table class="readout">
             <tbody>
-              <tr><td>Keng qism diametri, d₁</td><td><b id="l6-d1">120</b><span class="unit">mm</span></td></tr>
-              <tr><td>Toraygan qism diametri, d₂</td><td><b id="l6-d2">50</b><span class="unit">mm</span></td></tr>
+              <tr><td>1-kesim diametri, d₁</td><td><b id="l6-rd1">120</b><span class="unit">mm</span></td></tr>
+              <tr><td>3-kesim diametri, d₂</td><td><b id="l6-rd2">50</b><span class="unit">mm</span></td></tr>
               <tr><td>Keng qism yuzasi, A₁</td><td><b id="l6-a1">113,1</b><span class="unit">sm²</span></td></tr>
               <tr><td>Toraygan qism yuzasi, A₂</td><td><b id="l6-a2">19,6</b><span class="unit">sm²</span></td></tr>
-              <tr><td>Hajmiy sarf, Q</td><td><b id="l6-q">8,0</b><span class="unit">L/s</span></td></tr>
+              <tr><td>Hajmiy sarf, Q</td><td><b id="l6-rq">8,0</b><span class="unit">L/s</span></td></tr>
               <tr><td>Keng qismda tezlik, v₁</td><td><b id="l6-v1">0,71</b><span class="unit">m/s</span></td></tr>
               <tr class="accent"><td>Toraygan qismda tezlik, v₂</td><td><b id="l6-v2">4,07</b><span class="unit">m/s</span></td></tr>
               <tr><td>Tezlik nisbati, v₂/v₁</td><td><b id="l6-k">5,76</b><span class="unit">marta</span></td></tr>
@@ -1021,6 +1077,34 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
               <tr><td>Suyuqlik zichligi, ρ</td><td><b id="l6-rho">1000</b><span class="unit">kg/m³</span></td></tr>
             </tbody>
           </table>
+        </div>
+        <div class="card">
+          <h3>Kesimlar bo‘yicha jadval</h3>
+          <p class="hint">Quvur to‘rt kesimga bo‘lindi: keng kirish, torayish bo‘g‘ini, tor bo‘yin va kengayish bo‘g‘ini.</p>
+          <table class="sect-table">
+            <thead>
+              <tr><th>Kesim</th><th>d, mm</th><th>A, sm²</th><th>v, m/s</th><th>p, kPa</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="sect-no">1</span>Keng kirish</td>
+                <td id="sec1-d">120</td><td id="sec1-a">113,1</td><td id="sec1-v">0,71</td><td id="sec1-p">40,0</td>
+              </tr>
+              <tr>
+                <td><span class="sect-no">2</span>Torayish</td>
+                <td id="sec2-d">85</td><td id="sec2-a">56,7</td><td id="sec2-v">1,41</td><td id="sec2-p">39,3</td>
+              </tr>
+              <tr class="throat">
+                <td><span class="sect-no">3</span>Tor bo‘yin</td>
+                <td id="sec3-d">50</td><td id="sec3-a">19,6</td><td id="sec3-v">4,07</td><td id="sec3-p">32,0</td>
+              </tr>
+              <tr>
+                <td><span class="sect-no">4</span>Kengayish</td>
+                <td id="sec4-d">85</td><td id="sec4-a">56,7</td><td id="sec4-v">1,41</td><td id="sec4-p">39,3</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="hint">Har bir kesimda A·v = Q o‘zgarmaydi, bosim esa Bernulli tenglamasidan topiladi. Kesim diametrlarini «Boshqarish» bo‘limida alohida o‘zgartirish mumkin.</p>
         </div>
         <div class="card">
           <h3>Hisoblash</h3>
