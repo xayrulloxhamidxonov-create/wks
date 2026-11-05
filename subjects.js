@@ -14,12 +14,81 @@ const PLANETS = {
   saturn:  { name: "Saturn",   a: 9.537, color: "#e2cf9b" }
 };
 
-const METALS = {
-  alu:   { name: "Alyuminiy", tm: 660,  B: 45, color: "#d6dee8" },
-  brass: { name: "Latun",     tm: 900,  B: 60, color: "#d6b36a" },
-  iron:  { name: "Cho‘yan",   tm: 1200, B: 75, color: "#b0795a" },
-  steel: { name: "Po‘lat",    tm: 1450, B: 95, color: "#aeb8c8" }
+/* 1-amaliy: qizdirish elementlari — NamDTU uslubiy ko‘rsatmasi (2026), 1-jadval */
+const HEAT_MATS = {
+  X20H80: {
+    short: "X20H80", name: "X20H80 (Nixrom)", comp: "80% Ni, 20% Cr",
+    tmax: 1150, tmaxTxt: "1100–1150 °C", rho20: 1.12, rhoRange: "1,10–1,15",
+    gamma: 8.40, ct: [1.000, 1.010, 1.025, 1.040, 1.050, 1.060, 1.070]
+  },
+  X15H60: {
+    short: "X15H60", name: "X15H60 (Nixrom)", comp: "60% Ni, 15% Cr, Fe",
+    tmax: 1050, tmaxTxt: "1000–1050 °C", rho20: 1.15, rhoRange: "1,11–1,18",
+    gamma: 8.20, ct: [1.000, 1.009, 1.023, 1.038, 1.049, 1.059, 1.069]
+  },
+  X23Y5T: {
+    short: "X23Y5T", name: "X23Y5T (FeChral)", comp: "23% Cr, 5% Al, Fe",
+    tmax: 1300, tmaxTxt: "1250–1300 °C", rho20: 1.345, rhoRange: "1,30–1,39",
+    gamma: 7.21, ct: [1.000, 1.005, 1.015, 1.025, 1.035, 1.045, 1.055]
+  },
+  X27Y5T: {
+    short: "X27Y5T", name: "X27Y5T (FeChral)", comp: "27% Cr, 5% Al, Fe",
+    tmax: 1350, tmaxTxt: "1300–1350 °C", rho20: 1.385, rhoRange: "1,35–1,42",
+    gamma: 7.10, ct: [1.000, 1.004, 1.013, 1.023, 1.033, 1.043, 1.053]
+  }
 };
+const CT_T = [20, 200, 400, 600, 800, 1000, 1200];
+const HEAT_VARIANTS = [
+  { p: 8.0, u: 220, t: 900,  mat: "X20H80", w: 2.1 },
+  { p: 10.0, u: 220, t: 1000, mat: "X20H80", w: 2.3 },
+  { p: 15.0, u: 380, t: 1100, mat: "X23Y5T", w: 2.5 },
+  { p: 6.0, u: 220, t: 850,  mat: "X15H60", w: 1.9 },
+  { p: 18.0, u: 380, t: 1200, mat: "X23Y5T", w: 2.8 },
+  { p: 12.5, u: 220, t: 950,  mat: "X20H80", w: 2.2 },
+  { p: 20.0, u: 380, t: 1250, mat: "X27Y5T", w: 3.0 },
+  { p: 5.0, u: 220, t: 800,  mat: "X15H60", w: 1.8 },
+  { p: 14.0, u: 380, t: 1050, mat: "X20H80", w: 2.4 },
+  { p: 22.0, u: 380, t: 1300, mat: "X27Y5T", w: 3.2 }
+];
+const WIRE_D = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,
+  2.0, 2.2, 2.4, 2.5, 2.6, 2.8, 3.0, 3.2, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 8.0, 9.0, 10.0];
+
+function ctAt(matKey, t) {
+  const arr = (HEAT_MATS[matKey] || HEAT_MATS.X20H80).ct;
+  if (t <= CT_T[0]) return arr[0];
+  for (let i = 1; i < CT_T.length; i++) {
+    if (t <= CT_T[i]) {
+      const k = (t - CT_T[i - 1]) / (CT_T[i] - CT_T[i - 1]);
+      return arr[i - 1] + (arr[i] - arr[i - 1]) * k;
+    }
+  }
+  const last = arr.length - 1;
+  return arr[last] + (arr[last] - arr[last - 1]) / (CT_T[last] - CT_T[last - 1]) * (t - CT_T[last]);
+}
+
+function stdWire(d) {
+  for (let i = 0; i < WIRE_D.length; i++) if (WIRE_D[i] >= d - 1e-9) return WIRE_D[i];
+  return WIRE_D[WIRE_D.length - 1];
+}
+
+function heatCalc(s) {
+  const mat = HEAT_MATS[s.mat] || HEAT_MATS.X20H80;
+  const I = s.p * 1000 / s.u;
+  const Rt = s.u * s.u / (s.p * 1000);
+  const Ct = ctAt(s.mat, s.t);
+  const rhoT = mat.rho20 * Ct;
+  const dRaw = 0.217 * Math.cbrt(Math.pow(s.p * 1000, 2) * rhoT / (s.u * s.u * s.w));
+  const dCalc = Math.round(dRaw * 100) / 100;
+  const dStd = stdWire(dCalc);
+  const A = Math.PI * dStd * dStd / 4;
+  const L = Math.round(s.p * 1000 / (Math.PI * dStd * 10 * s.w) * 100) / 100;
+  const mass = A * L * mat.gamma / 1000;
+  return {
+    mat: mat, I: I, Rt: Rt, Ct: Ct, rhoT: rhoT, dCalc: dCalc, dStd: dStd,
+    A: A, L: L, mass: mass, over: s.t > mat.tmax,
+    Dsr1: 7 * dStd, Dsr2: 10 * dStd, h1: 2 * dStd, h2: 4 * dStd
+  };
+}
 
 const PROD_TYPES = {
   yakka: {
@@ -95,7 +164,7 @@ const CARDS = [
   { key: "fizika", name: "Fizika", tagline: "Erkin tushish: balandlik, vaqt va tezlik bog‘lanishi.", count: "1 ish", tags: ["mexanika", "SI", "TXT"], accent: "#5aa9ff", icon: ICONS.atom },
   { key: "astronomiya", name: "Astronomiya", tagline: "Sayyoralar orbitalari va Kepler uchinchi qonuni.", count: "1 ish", tags: ["Kepler", "orbita", "TXT"], accent: "#b28dff", icon: ICONS.orbit },
   { key: "ekologiya", name: "Ekologiya", tagline: "Suvni filtrlash va ifloslanishni kamaytirish.", count: "1 ish", tags: ["filtr", "suv", "TXT"], accent: "#5ee08a", icon: ICONS.leaf },
-  { key: "quymakorlik", name: "Quymakorlik", tagline: "Quyish harorati va qotish vaqtini hisoblash.", count: "1 ish", tags: ["metall", "qolip", "TXT"], accent: "#f5b84b", icon: ICONS.crucible },
+  { key: "quymakorlik", name: "Quymakorlik", tagline: "Qizdirish qurilmalari: qizdirgichni hisoblash.", count: "1 ish", tags: ["qizdirish", "nixrom", "TXT"], accent: "#f5b84b", icon: ICONS.crucible },
   { key: "mashinasozlik", name: "Mashinasozlik", tagline: "Texnologik jarayon strukturasi va tishli uzatma.", count: "2 ish", tags: ["texnologiya", "uzatma", "TXT"], accent: "#ff8a6b", icon: ICONS.gear },
   { key: "anatomiya", name: "Odam anatomiyasi", tagline: "Yurak, miya, jigar va neyronlar ishlash prinsipi.", count: "4 ish", tags: ["organlar", "animatsiya", "TXT"], accent: "#ff7a9c", icon: ICONS.anatomy },
   { key: "nazariy", name: "Nazariy mexanika", tagline: "Qiyshiq tekislikda ishqalanish va tezlanish.", count: "1 ish", tags: ["dinamika", "kuchlar", "TXT"], accent: "#f58ac2", icon: ICONS.incline }
@@ -244,51 +313,121 @@ const defs = {
 
   quymakorlik: {
     name: "Quymakorlik",
-    kicker: "Quymakorlik · quyish texnologiyasi",
-    title: "Quyma qanchalik tez qotadi?",
-    goal: "Maqsad: quyish harorati, qolipdagi metall qalinligi va qotish vaqti orasidagi bog‘lanishni Chvorinov qoidasi <b>t = B·(V/A)²</b> bo‘yicha hisoblash.",
+    subject: "quymakorlik",
+    labLabel: "1-ish · Qizdirish elementi",
+    kicker: "Quymakorlik · qizdirish qurilmalari",
+    title: "Qizdirish elementini qanday hisoblaymiz?",
+    goal: "Maqsad: elektr qarshilik pechining quvvati, kuchlanishi va ishchi haroratidan foydalanib qizdirgich simining diametrini <b>d</b>, uzunligini <b>L</b>, massasini <b>m</b> va spiral o‘lchamlarini hisoblash.",
     accent: "#f5b84b",
-    equipment: ["Qolip (opalubka)", "Tigel", "Quyish cho‘michi", "Termojuft", "Metall namunalari", "Chizg‘ich"],
-    bigLabel: "qotish vaqti",
-    hint: "Plita uchun V/A ≈ d/2. B — qolip materialiga bog‘liq empirik doimiy (s/sm²); bu yerda qum qolipi uchun shartli qiymatlar.",
+    equipment: ["Mufelli elektr pech", "Nixrom / FeChral sim", "Spiral o‘rash stanogi", "Termojuft", "Ommetr", "Shtangensirkul", "Tarozi"],
+    bigLabel: "qizdirgich uzunligi",
+    hint: "Ma’lumotlar: NamDTU uslubiy ko‘rsatmasi (2026), 1-jadval va 1-diagramma. C<sub>t</sub> grafikdan interpolyatsiya qilinadi (X15H60 va X27Y5T — oila egri chizig‘i bo‘yicha); d standart sim o‘lchamigacha yaxlitlanadi. Formulalarda d — mm, w — W/cm².",
     controls: [
-      { id: "metal", label: "Metall", type: "select", value: "alu", options: [
-        { value: "alu", label: "Alyuminiy — 660 °C" },
-        { value: "brass", label: "Latun — 900 °C" },
-        { value: "iron", label: "Cho‘yan — 1200 °C" },
-        { value: "steel", label: "Po‘lat — 1450 °C" }
+      { id: "variant", label: "Variant topshirig‘i", type: "select", value: "1", options: [
+        { value: "1", label: "1-variant · 8,0 kW · 220 V · 900 °C · X20H80 · 2,1" },
+        { value: "2", label: "2-variant · 10,0 kW · 220 V · 1000 °C · X20H80 · 2,3" },
+        { value: "3", label: "3-variant · 15,0 kW · 380 V · 1100 °C · X23Y5T · 2,5" },
+        { value: "4", label: "4-variant · 6,0 kW · 220 V · 850 °C · X15H60 · 1,9" },
+        { value: "5", label: "5-variant · 18,0 kW · 380 V · 1200 °C · X23Y5T · 2,8" },
+        { value: "6", label: "6-variant · 12,5 kW · 220 V · 950 °C · X20H80 · 2,2" },
+        { value: "7", label: "7-variant · 20,0 kW · 380 V · 1250 °C · X27Y5T · 3,0" },
+        { value: "8", label: "8-variant · 5,0 kW · 220 V · 800 °C · X15H60 · 1,8" },
+        { value: "9", label: "9-variant · 14,0 kW · 380 V · 1050 °C · X20H80 · 2,4" },
+        { value: "10", label: "10-variant · 22,0 kW · 380 V · 1300 °C · X27Y5T · 3,2" }
       ] },
-      { id: "d", label: "Quyma qalinligi, d", type: "range", min: 10, max: 60, step: 5, value: 25, unit: "mm", dec: 0 },
-      { id: "superheat", label: "Qizdirish, ΔT", type: "range", min: 20, max: 200, step: 10, value: 80, unit: "°C", dec: 0 }
+      { id: "p", label: "Pech quvvati, P", type: "range", min: 3, max: 25, step: 0.5, value: 8, unit: "kW", dec: 1 },
+      { id: "u", label: "Tarmoq kuchlanishi, U", type: "select", value: "220", options: [
+        { value: "220", label: "220 V" },
+        { value: "380", label: "380 V" }
+      ] },
+      { id: "t", label: "Ishchi harorat, t", type: "range", min: 600, max: 1350, step: 50, value: 900, unit: "°C", dec: 0 },
+      { id: "mat", label: "Qotishma markasi", type: "select", value: "X20H80", options: [
+        { value: "X20H80", label: "X20H80 — Nixrom, 1100–1150 °C" },
+        { value: "X15H60", label: "X15H60 — Nixrom, 1000–1050 °C" },
+        { value: "X23Y5T", label: "X23Y5T — FeChral, 1250–1300 °C" },
+        { value: "X27Y5T", label: "X27Y5T — FeChral, 1300–1350 °C" }
+      ] },
+      { id: "w", label: "Solishtirma quvvat, w", type: "range", min: 1.0, max: 4.5, step: 0.1, value: 2.1, unit: "W/cm²", dec: 1 }
     ],
-    state: { metal: "alu", d: 25, superheat: 80 },
+    state: { variant: 1, p: 8, u: 220, t: 900, mat: "X20H80", w: 2.1 },
+    onChange(def, id) {
+      if (id !== "variant") return;
+      const sel = document.querySelector('[data-control="variant"]');
+      const v = HEAT_VARIANTS[Math.max(0, Math.min(9, (+(sel ? sel.value : def.state.variant) || 1) - 1))];
+      const set = (key, val) => {
+        def.state[key] = val;
+        const inp = document.querySelector('[data-control="' + key + '"]');
+        if (inp) inp.value = val;
+      };
+      set("p", v.p); set("u", v.u); set("t", v.t); set("mat", v.mat); set("w", v.w);
+    },
     compute(s) {
-      const m = METALS[s.metal] || METALS.alu;
-      const M = s.d / 20;              // sm: d (mm) / 10 / 2
-      const t = m.B * M * M;
-      const Tp = m.tm + s.superheat;
+      const r = heatCalc(s);
+      const sign = r.over ? "⚠ Diqqat: t = " + fmt(s.t, 0) + " °C " + r.mat.short + " uchun ruxsat etilgan " + r.mat.tmaxTxt + " chegarasidan yuqori!"
+        : "t = " + fmt(s.t, 0) + " °C " + r.mat.short + " uchun ruxsat etilgan oraliqda (" + r.mat.tmaxTxt + ").";
       return {
-        big: fmt(t, 1) + " s",
+        big: fmt(r.L, 2) + " m",
         readout: [
-          ["Metall", m.name, ""],
-          ["Qotish harorati, Tₛ", fmt(m.tm, 0), "°C"],
-          ["Qizdirish, ΔT", fmt(s.superheat, 0), "°C"],
-          ["Quyish harorati, Tᵩ", fmt(Tp, 0), "°C", true],
-          ["Quyma qalinligi, d", fmt(s.d, 0), "mm"],
-          ["Modul, M = d/2", fmt(M, 2), "sm"],
-          ["Qolip doimiysi, B", fmt(m.B, 0), "s/sm²"],
-          ["Qotish vaqti, t", fmt(t, 1), "s", true],
-          ["Qotish vaqti", fmt(t / 60, 2), "min"]
+          ["Variant", "№ " + s.variant, ""],
+          ["Quvvat, P", fmt(s.p, 1), "kW"],
+          ["Kuchlanish, U", fmt(s.u, 0), "V"],
+          ["Ishchi harorat, t", fmt(s.t, 0), "°C"],
+          ["Material", r.mat.short, ""],
+          ["Solishtirma quvvat, w", fmt(s.w, 1), "W/cm²"],
+          ["Tok kuchi, I", fmt(r.I, 2), "A", true],
+          ["Qarshilik, R_t", fmt(r.Rt, 2), "Ω", true],
+          ["Harorat koeffitsiyenti, C_t", fmt(r.Ct, 3), ""],
+          ["ρ_t = ρ₂₀·C_t", fmt(r.rhoT, 3), "µΩ·m"],
+          ["d hisobiy → standart", fmt(r.dCalc, 2) + " → " + fmt(r.dStd, 1), "mm", true],
+          ["Kesim yuzasi, S", fmt(r.A, 2), "mm²"],
+          ["Uzunlik, L", fmt(r.L, 2), "m", true],
+          ["Massa, m", fmt(r.mass, 2), "kg", true],
+          ["Spiral diametri, D_sr", fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1), "mm"],
+          ["Spiral qadami, h", fmt(r.h1, 1) + "…" + fmt(r.h2, 1), "mm"]
         ],
-        calc: "M = d / 2 = " + fmt(s.d, 0) + " mm / 2 = " + fmt(M, 2) + " sm\n" +
-          "t = B · M²\n" +
-          "t = " + fmt(m.B, 0) + " × " + fmt(M, 2) + "² = " + fmt(t, 1) + " s\n\n" +
-          "Tᵩ = Tₛ + ΔT = " + fmt(m.tm, 0) + " + " + fmt(s.superheat, 0) + " = " + fmt(Tp, 0) + " °C\n\n" +
-          "Qalinlik 2 marta oshsa, qotish vaqti 4 marta ortadi (M² qonuni).",
-        conclusion: m.name + " " + fmt(Tp, 0) + " °C da quyiladi, qotish harorati " + fmt(m.tm, 0) + " °C. Qalinligi " + fmt(s.d, 0) + " mm bo‘lgan quyma taxminan " + fmt(t, 1) + " s (" + fmt(t / 60, 2) + " min) da qotadi."
+        calc:
+          "Berilgan: P = " + fmt(s.p, 1) + " kW, U = " + fmt(s.u, 0) + " V, t = " + fmt(s.t, 0) + " °C, w = " + fmt(s.w, 1) + " W/cm²\n" +
+          r.mat.name + " — " + r.mat.comp + ", t_maks = " + r.mat.tmaxTxt + "\n" +
+          "ρ₂₀ = " + fmt(r.mat.rho20, 3) + " µΩ·m (" + r.mat.rhoRange + "), γ = " + fmt(r.mat.gamma, 2) + " g/cm³\n\n" +
+          "1) I = P·1000 / U = " + fmt(s.p, 1) + "·1000 / " + fmt(s.u, 0) + " = " + fmt(r.I, 2) + " A\n" +
+          "   R_t = U² / (P·1000) = " + fmt(s.u * s.u, 0) + " / " + fmt(s.p * 1000, 0) + " = " + fmt(r.Rt, 2) + " Ω\n\n" +
+          "2) C_t(" + fmt(s.t, 0) + " °C) = " + fmt(r.Ct, 3) + " (1-diagramma)\n" +
+          "   ρ_t = ρ₂₀·C_t = " + fmt(r.mat.rho20, 3) + "·" + fmt(r.Ct, 3) + " = " + fmt(r.rhoT, 3) + " µΩ·m\n\n" +
+          "3) d = 0,217·[(P·1000)²·ρ_t / (U²·w)]^(1/3)\n" +
+          "     = 0,217·[" + fmt(Math.pow(s.p * 1000, 2) * r.rhoT / (s.u * s.u * s.w), 1) + "]^(1/3) = " + fmt(r.dCalc, 2) + " mm\n" +
+          "   Standart sim: d = " + fmt(r.dStd, 1) + " mm\n\n" +
+          "4) L = P·1000 / (π·d·10·w)\n" +
+          "     = " + fmt(s.p * 1000, 0) + " / (3,1416·" + fmt(r.dStd, 1) + "·10·" + fmt(s.w, 1) + ") = " + fmt(r.L, 2) + " m\n\n" +
+          "5) S = πd²/4 = 3,1416·" + fmt(r.dStd, 1) + "²/4 = " + fmt(r.A, 2) + " mm²\n" +
+          "   m = S·L·γ / 1000 = " + fmt(r.A, 2) + "·" + fmt(r.L, 2) + "·" + fmt(r.mat.gamma, 2) + "/1000 = " + fmt(r.mass, 2) + " kg\n\n" +
+          "6) D_sr = (7…10)·d = " + fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1) + " mm\n" +
+          "   h = (2…4)·d = " + fmt(r.h1, 1) + "…" + fmt(r.h2, 1) + " mm\n\n" +
+          sign,
+        conclusion:
+          "№" + s.variant + " variant: " + r.mat.name + " simdan d = " + fmt(r.dStd, 1) + " mm tanlanadi, " +
+          "uzunligi L = " + fmt(r.L, 2) + " m, massasi m = " + fmt(r.mass, 2) + " kg. " +
+          "Spiral D_sr = " + fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1) + " mm, qadam h = " + fmt(r.h1, 1) + "…" + fmt(r.h2, 1) + " mm. " +
+          "I = " + fmt(r.I, 2) + " A, R_t = " + fmt(r.Rt, 2) + " Ω. " + sign
       };
     },
-    draw: drawCasting
+    steps: [
+      "Variant topshirig‘idagi P, U, t, material va w qiymatlarini yozib oling.",
+      "I = P·1000/U va R_t = U²/(P·1000) ni hisoblang.",
+      "1-diagrammadan C_t ni topib, ρ_t = ρ₂₀·C_t ni aniqlang.",
+      "d = 0,217·[(P·1000)²·ρ_t/(U²·w)]^(1/3) ni hisoblab, standart sim o‘lchamiga yaxlitlang.",
+      "L = P·1000/(π·d·10·w) va m = S·L·γ/1000 ni hisoblang.",
+      "Spiral o‘lchamlarini D_sr = (7…10)·d va h = (2…4)·d bo‘yicha aniqlang.",
+      "Natijalarni jadvalga yozing va hisobotni yuklab oling."
+    ],
+    questions: [
+      "Nima uchun qizdirgichlar ρ > 1,0 µΩ·m bo‘lgan qotishmalardan tayyorlanadi?",
+      "C_t harorat ortishi bilan qanday o‘zgaradi va nima uchun hisobga olinadi?",
+      "w oshirilsa, sim diametri qanday o‘zgaradi? Javobni formula bilan tushuntiring.",
+      "Nima uchun hisobiy diametr standart sim o‘lchamiga yaxlitlanadi?",
+      "D_sr va h tavsiya etilgan oraliqdan chiqsa qanday oqibatlar yuz beradi?",
+      "1300 °C ishchi harorat uchun qaysi qotishma mos keladi?"
+    ],
+    draw: drawHeatElement
   },
 
   "mashinasozlik-gear": {
@@ -1150,119 +1289,240 @@ function drawEcology(ctx, s, time, dt) {
 }
 
 /* ============================================================
-   QUYMAKORLIK — quyish va qotish
+   QUYMAKORLIK — qizdirish elementini hisoblash
    ============================================================ */
 
-function metalColor(k) {
-  if (k > 0.6) return mixHex("#ff8a3d", "#ffd36b", (k - 0.6) / 0.4);
-  if (k > 0.25) return mixHex("#c94a2e", "#ff8a3d", (k - 0.25) / 0.35);
-  return mixHex("#6f7b88", "#c94a2e", k / 0.25);
+function heatColor(t) {
+  return mixHex("#e8552f", "#ffe6a3", clamp((t - 600) / 750, 0, 1));
 }
 
-function drawCasting(ctx, s, time) {
-  const m = METALS[s.metal] || METALS.alu;
-  const Tp = m.tm + s.superheat;
-  const M = s.d / 20;
-  const tq = m.B * M * M;
+function heatRgba(c, a) {
+  return c.replace("rgb(", "rgba(").replace(")", "," + a + ")");
+}
 
-  subjectBg(ctx, "QUYMAKORLIK", "Quyish va qotish", "Chvorinov: t = B·M²");
+function heatMix(hex, c, k) {
+  k = clamp(k, 0, 1);
+  const h = hex.replace("#", "");
+  const m = c.match(/\d+/g) || [255, 255, 255];
+  return "rgb(" +
+    Math.round(lerp(parseInt(h.slice(0, 2), 16), +m[0], k)) + "," +
+    Math.round(lerp(parseInt(h.slice(2, 4), 16), +m[1], k)) + "," +
+    Math.round(lerp(parseInt(h.slice(4, 6), 16), +m[2], k)) + ")";
+}
 
-  const cycle = 7.5, pourT = 2.4, coolEnd = 6.6;
-  const tt = time % cycle;
-  const fill = clamp(tt / pourT, 0, 1);
-  const cool = clamp((tt - pourT) / (coolEnd - pourT), 0, 1);
-  const T = Tp - (Tp - (m.tm - 140)) * cool;
-  const k = clamp((T - (m.tm - 140)) / (Tp - (m.tm - 140)), 0, 1);
-  const col = metalColor(k);
+function drawHeatElement(ctx, s, time) {
+  const r = heatCalc(s);
+  const tt = time || 0;
+  const hot = heatColor(s.t);
+  const pulse = 0.84 + 0.16 * Math.sin(tt * 2.2);
+  const ac = "245,184,75";
+  const opt = { bg: "rgba(" + ac + ",.09)", border: "rgba(" + ac + ",.32)", color: "#f8d79c" };
 
-  const mx = 250, mw = 400, mtop = 210, mbot = 430;
-  const th = clamp(s.d * 1.4, 14, 84);
-  const cy = 300;
-  const cavX = 300, cavW = 300;
+  subjectBg(ctx, "QUYMAKORLIK", "Qizdirish elementini hisoblash", "NamDTU · 2026 · 1-amaliy");
 
-  ctx.fillStyle = "rgba(90,105,120,.20)";
-  ctx.fillRect(mx, mtop, mw, cy - mtop);
-  ctx.fillRect(mx, cy + th, mw, mbot - (cy + th));
-  hatchRect(ctx, mx, mtop, mw, cy - mtop, "rgba(150,190,210,.10)");
-  hatchRect(ctx, mx, cy + th, mw, mbot - (cy + th), "rgba(150,190,210,.10)");
-  ctx.strokeStyle = "rgba(150,205,235,.3)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(mx, mtop, mw, cy - mtop);
-  ctx.strokeRect(mx, cy + th, mw, mbot - (cy + th));
+  let px = 30;
+  px += pill(ctx, px, 80, "P = " + fmt(s.p, 1) + " kW", opt) + 8;
+  px += pill(ctx, px, 80, "U = " + fmt(s.u, 0) + " V", opt) + 8;
+  px += pill(ctx, px, 80, "t = " + fmt(s.t, 0) + " °C", opt) + 8;
+  pill(ctx, px, 80, "w = " + fmt(s.w, 1) + " W/cm²", opt);
 
-  if (fill > 0) {
-    ctx.fillStyle = col;
-    ctx.fillRect(298, mtop, 24, cy - mtop);
-    ctx.fillRect(cavX, cy, cavW * fill, th);
-    ctx.fillStyle = "rgba(255,255,255,.18)";
-    ctx.fillRect(cavX, cy + 2, cavW * fill, 2.5);
+  px = 30;
+  px += pill(ctx, px, 112, r.mat.name, opt) + 8;
+  px += pill(ctx, px, 112, "C_t = " + fmt(r.Ct, 3), opt) + 8;
+  px += pill(ctx, px, 112, "ρ_t = " + fmt(r.rhoT, 3) + " µΩ·m", opt) + 8;
+  pill(ctx, px, 112, "I = " + fmt(r.I, 2) + " A", { bg: "rgba(" + ac + ",.13)", border: "rgba(" + ac + ",.42)", color: "#ffe8b0" });
+
+  if (r.over) {
+    pill(ctx, 930, 80, "⚠ t > t_maks", { align: "right", bg: "rgba(255,90,90,.12)", border: "rgba(255,120,120,.45)", color: "#ffb3b3" });
   }
 
-  ctx.strokeStyle = "rgba(245,184,75,.35)";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([5, 6]);
-  ctx.strokeRect(cavX, cy, cavW, th);
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(20,33,44,.95)";
-  ctx.beginPath();
-  ctx.moveTo(362, 96); ctx.lineTo(470, 96); ctx.lineTo(454, 146); ctx.lineTo(378, 146);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = "rgba(150,205,235,.35)";
-  ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.fillStyle = k > .5 ? "#ffca55" : "#ff7a3d";
-  ctx.beginPath(); ctx.ellipse(416, 101, 43, 5, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = "rgba(150,205,235,.45)";
-  ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(468, 104); ctx.lineTo(530, 82); ctx.stroke();
-
-  if (fill < 1) {
-    ctx.strokeStyle = col;
-    ctx.lineWidth = 7;
-    ctx.beginPath(); ctx.moveTo(444, 142); ctx.lineTo(310, 210); ctx.stroke();
-    ctx.strokeStyle = "rgba(255,240,190,.55)";
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(444, 142); ctx.lineTo(310, 210); ctx.stroke();
-  }
-
-  text(ctx, "QOLIP", 262, 230, { size: 9.5, weight: 700, color: "rgba(150,200,220,.55)" });
-  text(ctx, "quyma", cavX + 8, cy - 5, { size: 9.5, color: "rgba(245,215,150,.7)" });
-
-  const tx = 806, ttop = 150, tbot = 420;
-  rr(ctx, tx, ttop, 18, 270, 9);
-  ctx.fillStyle = "rgba(255,255,255,.035)";
+  const fx = 30, fy = 150, fw = 530, fh = 300;
+  const shell = ctx.createLinearGradient(fx, fy, fx, fy + fh);
+  shell.addColorStop(0, "#33475a");
+  shell.addColorStop(0.5, "#1c2c3a");
+  shell.addColorStop(1, "#12202c");
+  rr(ctx, fx, fy, fw, fh, 12);
+  ctx.fillStyle = shell;
   ctx.fill();
-  ctx.strokeStyle = "rgba(150,205,235,.3)";
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(150,205,235,.32)";
+  ctx.lineWidth = 2;
   ctx.stroke();
-  const level = tbot - clamp(T / 2000, 0, 1) * 258;
-  ctx.fillStyle = "#ff6b4a";
-  ctx.fillRect(tx + 4, level, 10, tbot - 4 - level);
-  for (let i = 0; i <= 4; i++) {
-    const val = i * 500;
-    const yy = tbot - (val / 2000) * 258;
-    ctx.strokeStyle = "rgba(150,205,235,.28)";
-    ctx.beginPath(); ctx.moveTo(tx - 4, yy); ctx.lineTo(tx, yy); ctx.stroke();
-    text(ctx, String(val), tx - 9, yy + 3, { size: 9, align: "right", mono: true, color: "rgba(160,195,215,.55)" });
-  }
-  text(ctx, fmt(T, 0) + " °C", tx + 9, ttop - 12, { size: 13, align: "center", mono: true, weight: 650, color: "#ffc9a8" });
 
-  pill(ctx, 30, 88, "Tᵩ = " + fmt(Tp, 0) + " °C", { bg: "rgba(245,184,75,.10)", border: "rgba(245,184,75,.34)", color: "#f8d79c" });
-  pill(ctx, 30, 120, "t = " + fmt(tq, 1) + " s", { bg: "rgba(245,184,75,.10)", border: "rgba(245,184,75,.34)", color: "#f8d79c" });
-  pill(ctx, 30, 152, "M = " + fmt(M, 2) + " sm", { bg: "rgba(245,184,75,.10)", border: "rgba(245,184,75,.34)", color: "#f8d79c" });
-
-  text(ctx, "QOTISH JARAYONI", 250, 452, { size: 9.5, weight: 700, color: "rgba(150,200,220,.6)" });
-  rr(ctx, 250, 460, 400, 9, 4.5);
-  ctx.fillStyle = "rgba(255,255,255,.04)";
+  rr(ctx, fx + 16, fy + 16, fw - 32, fh - 32, 8);
+  ctx.fillStyle = "rgba(96,74,58,.62)";
   ctx.fill();
-  if (cool > 0) {
-    rr(ctx, 250, 460, 400 * cool, 9, 4.5);
-    ctx.fillStyle = col;
-    ctx.fill();
+  ctx.save();
+  rr(ctx, fx + 16, fy + 16, fw - 32, fh - 32, 8);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(220,180,140,.14)";
+  ctx.lineWidth = 1;
+  for (let y = fy + 16; y < fy + fh - 16; y += 22) {
+    ctx.beginPath(); ctx.moveTo(fx + 16, y); ctx.lineTo(fx + fw - 16, y); ctx.stroke();
   }
-  text(ctx, fmt(cool * 100, 0) + "%", 662, 469, { size: 10, mono: true, color: "rgba(245,215,150,.8)" });
+  for (let row = 0, y = fy + 16; y < fy + fh - 16; y += 22, row++) {
+    for (let x = fx + 16 + (row % 2 ? 22 : 0); x < fx + fw - 16; x += 44) {
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, Math.min(y + 22, fy + fh - 16)); ctx.stroke();
+    }
+  }
+  ctx.restore();
 
-  text(ctx, "Chvorinov qoidasi: t = B·(V/A)² · qalinlik 2 marta oshsa, qotish vaqti 4 marta ortadi", 30, 518, { size: 10.5, color: "rgba(150,195,215,.55)" });
+  text(ctx, "MUFELLI ELEKTR QARSHILIK PECHI", fx + 26, fy + 40, { size: 9, weight: 700, color: "rgba(220,190,150,.65)" });
+
+  const chx = fx + 84, chy = fy + 52, chw = fw - 168, chh = fh - 104;
+  const cxm = chx + chw / 2, cym = chy + chh / 2;
+  rr(ctx, chx, chy, chw, chh, 10);
+  ctx.fillStyle = "#081119";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(245,184,75,.38)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.save();
+  rr(ctx, chx, chy, chw, chh, 10);
+  ctx.clip();
+  const glow = ctx.createRadialGradient(cxm, cym, 8, cxm, cym, chw * 0.62);
+  glow.addColorStop(0, heatRgba(hot, 0.10 + 0.26 * pulse));
+  glow.addColorStop(0.55, heatRgba(hot, 0.05 + 0.10 * pulse));
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(chx, chy, chw, chh);
+
+  const coil = (xx, yy, horizontal) => {
+    ctx.save();
+    ctx.shadowColor = heatRgba(hot, .85);
+    ctx.shadowBlur = 14 * pulse + 4;
+    ctx.strokeStyle = hot;
+    ctx.lineWidth = 4;
+    const step = 16;
+    const n = horizontal ? (xx[1] - xx[0]) / step : (yy[1] - yy[0]) / step;
+    for (let i = 0; i <= n; i++) {
+      ctx.beginPath();
+      if (horizontal) ctx.ellipse(xx[0] + i * step, yy[0], 8.5, 5.5, 0.34, 0, TAU);
+      else ctx.ellipse(xx[0], yy[0] + i * step, 5.5, 8.5, -0.34, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(255,244,220,.30)";
+    ctx.lineWidth = 1.1;
+    for (let i = 0; i <= n; i++) {
+      ctx.beginPath();
+      if (horizontal) ctx.ellipse(xx[0] + i * step - 1.4, yy[0] - 1.5, 6.8, 4.2, 0.34, 0, TAU);
+      else ctx.ellipse(xx[0] - 1.5, yy[0] + i * step - 1.4, 4.2, 6.8, -0.34, 0, TAU);
+      ctx.stroke();
+    }
+  };
+  coil([chx + 22, chx + chw - 22], [chy + 16], true);
+  coil([chx + 22, chx + chw - 22], [chy + chh - 16], true);
+  coil([chx + 8], [chy + 34, chy + chh - 34], false);
+  coil([chx + chw - 8], [chy + 34, chy + chh - 34], false);
+
+  ctx.fillStyle = "rgba(140,120,100,.38)";
+  ctx.fillRect(chx + 14, chy + chh - 42, chw - 28, 8);
+
+  const wpW = 130, wpH = 30, wpx = cxm - wpW / 2, wpy = chy + chh - 72;
+  const wp = ctx.createLinearGradient(wpx, wpy, wpx, wpy + wpH);
+  wp.addColorStop(0, heatMix("#66727d", hot, 0.35));
+  wp.addColorStop(1, heatMix("#39434c", hot, 0.15));
+  rr(ctx, wpx, wpy, wpW, wpH, 5);
+  ctx.fillStyle = wp;
+  ctx.fill();
+  ctx.strokeStyle = heatRgba(hot, .55);
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  text(ctx, "zagotovka", wpx + wpW + 9, wpy + wpH - 9, { size: 8.5, color: "rgba(245,215,150,.55)" });
+
+  for (let i = 0; i < 3; i++) {
+    const bx = wpx + 32 + i * 34, off = Math.sin(tt * 2 + i) * 2.5;
+    ctx.strokeStyle = heatRgba(hot, .16 + 0.12 * pulse);
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (let yy = 0; yy <= 34; yy += 4) {
+      const xx = bx + Math.sin(yy / 6 + tt * 3 + i) * 4 + off;
+      if (yy === 0) ctx.moveTo(xx, wpy - 6 - yy);
+      else ctx.lineTo(xx, wpy - 6 - yy);
+    }
+    ctx.stroke();
+  }
+
+  const tcx = cxm + 108;
+  ctx.strokeStyle = "rgba(190,205,215,.55)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(tcx, fy + 6);
+  ctx.lineTo(tcx, chy + 46);
+  ctx.stroke();
+  ctx.save();
+  ctx.shadowColor = heatRgba(hot, .9);
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(tcx, chy + 46, 4.2, 0, TAU);
+  ctx.fillStyle = hot;
+  ctx.fill();
+  ctx.restore();
+  text(ctx, "termojuft", tcx + 11, chy + 34, { size: 8.5, color: "rgba(190,215,230,.55)" });
+  ctx.restore();
+
+  panel(ctx, 580, 150, 350, 148, "#f5b84b");
+  text(ctx, "SIM KESIMI", 596, 172, { size: 9.5, weight: 700, color: "rgba(150,200,220,.6)" });
+  const cr = clamp(r.dStd * 10, 11, 30);
+  const ccx = 648, ccy = 232;
+  const wg = ctx.createRadialGradient(ccx - cr * 0.3, ccy - cr * 0.3, 1, ccx, ccy, cr);
+  wg.addColorStop(0, "#c7d0da");
+  wg.addColorStop(1, "#69747f");
+  ctx.beginPath();
+  ctx.arc(ccx, ccy, cr, 0, TAU);
+  ctx.fillStyle = wg;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,235,200,.65)";
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(245,215,150,.55)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(ccx - cr, ccy);
+  ctx.lineTo(ccx + cr, ccy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  text(ctx, "d", ccx, ccy + 3.5, { size: 10, align: "center", mono: true, color: "#ffe8b0" });
+
+  text(ctx, "d_hisobiy = " + fmt(r.dCalc, 2) + " mm", 700, 205, { size: 10.5, mono: true, color: "rgba(175,205,220,.75)" });
+  text(ctx, "d_standart = " + fmt(r.dStd, 1) + " mm", 700, 227, { size: 13, mono: true, weight: 700, color: "#ffe8b0" });
+  text(ctx, "S = " + fmt(r.A, 2) + " mm²", 700, 249, { size: 11, mono: true, color: "rgba(200,225,235,.8)" });
+  text(ctx, "w = " + fmt(s.w, 1) + " W/cm²", 700, 270, { size: 11, mono: true, color: "rgba(200,225,235,.8)" });
+  text(ctx, "L = " + fmt(r.L, 2) + " m · m = " + fmt(r.mass, 2) + " kg", 596, 289, { size: 10.5, mono: true, color: "rgba(200,225,235,.7)" });
+
+  panel(ctx, 580, 312, 350, 138, "#f5b84b");
+  text(ctx, "SPIRAL O‘LCHAMLARI", 596, 334, { size: 9.5, weight: 700, color: "rgba(150,200,220,.6)" });
+  const sy = 382, sx0 = 636;
+  ctx.save();
+  ctx.shadowColor = heatRgba(hot, .8);
+  ctx.shadowBlur = 10 * pulse + 3;
+  ctx.strokeStyle = hot;
+  ctx.lineWidth = 3.4;
+  for (let i = 0; i < 11; i++) {
+    ctx.beginPath();
+    ctx.ellipse(sx0 + i * 21, sy, 6.5, 17, 0.1, 0, TAU);
+    ctx.stroke();
+  }
+  ctx.restore();
+  arrow(ctx, sx0, sy + 28, sx0 + 21, sy + 28, "rgba(245,215,150,.55)", 1, 5);
+  arrow(ctx, sx0 + 21, sy + 28, sx0, sy + 28, "rgba(245,215,150,.55)", 1, 5);
+  text(ctx, "h = " + fmt(r.h1, 1) + "…" + fmt(r.h2, 1) + " mm", sx0 + 32, sy + 32, { size: 10, mono: true, color: "rgba(245,215,150,.8)" });
+  arrow(ctx, 906, sy - 17, 906, sy + 17, "rgba(245,215,150,.55)", 1, 5);
+  arrow(ctx, 906, sy + 17, 906, sy - 17, "rgba(245,215,150,.55)", 1, 5);
+  text(ctx, "D_sr", 898, sy + 3, { size: 9, align: "right", mono: true, color: "rgba(245,215,150,.75)" });
+  text(ctx, "D_sr = (7…10)·d = " + fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1) + " mm", 596, 438, { size: 10.5, mono: true, color: "rgba(245,215,150,.9)" });
+
+  let bx = 30;
+  bx += pill(ctx, bx, 460, "L = " + fmt(r.L, 2) + " m", { bg: "rgba(" + ac + ",.14)", border: "rgba(" + ac + ",.44)", color: "#ffe8b0" }) + 8;
+  bx += pill(ctx, bx, 460, "m = " + fmt(r.mass, 2) + " kg", opt) + 8;
+  bx += pill(ctx, bx, 460, "I = " + fmt(r.I, 2) + " A", opt) + 8;
+  bx += pill(ctx, bx, 460, "R_t = " + fmt(r.Rt, 2) + " Ω", opt) + 8;
+  pill(ctx, bx, 460, "D_sr = " + fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1) + " mm", opt);
+  pill(ctx, 930, 460, "№" + s.variant + " variant", { align: "right", bg: "rgba(" + ac + ",.09)", border: "rgba(" + ac + ",.32)", color: "#f8d79c" });
+
+  text(ctx, "d = 0,217·[(P·1000)²·ρ_t/(U²·w)]^⅓ = " + fmt(r.dCalc, 2) + " mm → d_standart = " + fmt(r.dStd, 1) + " mm ·  L = P·1000/(π·d·10·w) = " + fmt(r.L, 2) + " m", 30, 516, { size: 10, mono: true, color: "rgba(150,195,215,.6)" });
 }
 
 /* ============================================================
