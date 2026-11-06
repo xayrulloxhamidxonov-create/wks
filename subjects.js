@@ -3245,14 +3245,56 @@ document.querySelectorAll("[data-home]").forEach(btn => {
   btn.addEventListener("click", () => { location.hash = "home"; });
 });
 $("nav-home").addEventListener("click", () => { location.hash = "home"; });
+function subjectReportPlain(s) {
+  return String(s == null ? "" : s)
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/[ \t\r\n]+/g, " ")
+    .trim();
+}
+
+function subjectReportVariant(def) {
+  const c = (def.controls || []).find(x => x.id === "variant");
+  if (!c) return "";
+  const opt = (c.options || []).find(o => String(o.value) === String(def.state.variant));
+  return opt ? opt.label : (def.state.variant == null ? "" : String(def.state.variant));
+}
+
+function subjectReportInputs(def) {
+  return (def.controls || []).map(c => {
+    const raw = def.state[c.id];
+    let val;
+    if (c.type === "select") {
+      const opt = (c.options || []).find(o => String(o.value) === String(raw));
+      val = opt ? opt.label : (raw == null ? "—" : String(raw));
+    } else if (raw == null || raw === "") {
+      val = "—";
+    } else {
+      val = fmt(+raw, c.dec == null ? 1 : c.dec) + (c.unit ? " " + c.unit : "");
+    }
+    return [c.label, val];
+  });
+}
+
 $("subject-report").addEventListener("click", () => {
   const def = defs[currentKey];
   if (!def || !def.out) return;
+  const card = CARDS.find(c => c.key === def.subject);
   const report = {
+    subject: card ? card.name : (def.subject || ""),
     title: def.name + ". " + def.title,
-    goal: def.goal.replace(/<[^>]+>/g, "").replace(/^Maqsad:\s*/, ""),
+    variant: subjectReportVariant(def),
+    goal: subjectReportPlain(def.goal).replace(/^Maqsad:\s*/, "").replace(/^./, ch => ch.toUpperCase()),
     equipment: def.equipment.join(", "),
+    theory: subjectReportPlain(def.hint),
+    inputs: subjectReportInputs(def),
     steps: def.steps || [],
+    big: def.out.big,
+    bigLabel: def.out.bigLabel || def.bigLabel,
     rows: def.out.readout.map(r => [r[0], r[1] + (r[2] ? " " + r[2] : "")]),
     calc: def.out.calc.split("\n"),
     conclusion: def.out.conclusion || ""

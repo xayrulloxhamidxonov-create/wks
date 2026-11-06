@@ -2406,36 +2406,84 @@ function buildReport(r) {
   const name = ($("student-name").value || "").trim() || "—";
   const d = new Date();
   const date = String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+  const W = 78;
   const lines = [];
+  const clean = t => String(t == null ? "" : t)
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t\r\n]+/g, " ")
+    .trim();
+  const wrap = (t, width) => {
+    const max = width || W;
+    const words = [];
+    clean(t).split(" ").filter(Boolean).forEach(w => {
+      if (w === "=" && words.length) words[words.length - 1] += " =";
+      else words.push(w);
+    });
+    const out = [];
+    let line = "";
+    words.forEach((w, i) => {
+      const next = words[i + 1] || "";
+      const breaksBefore = line && (line + " " + w).length > max;
+      const eqAlone = line && /=$/.test(w) && next && (line + " " + w + " " + next).length > max;
+      if (breaksBefore || eqAlone) { out.push(line); line = w; }
+      else line = line ? line + " " + w : w;
+    });
+    if (line) out.push(line);
+    return out.length ? out : [""];
+  };
+
   lines.push("VIRTUAL LABORATORIYA — FANLAR TO‘PLAMI");
-  lines.push("=".repeat(56));
+  lines.push("=".repeat(64));
+  if (r.subject) lines.push("Fan: " + r.subject);
+  lines.push("Ish: " + r.title);
+  if (r.variant) {
+    const v = wrap(r.variant);
+    lines.push("Variant: " + v[0]);
+    v.slice(1).forEach(l => lines.push("         " + l));
+  }
   lines.push("Talaba: " + name);
   lines.push("Sana: " + date);
-  lines.push("");
-  lines.push(r.title);
-  lines.push("");
-  lines.push("Ishdan maqsad: " + r.goal);
-  lines.push("Jihozlar: " + r.equipment);
-  lines.push("");
-  if (r.steps && r.steps.length) {
-    lines.push("BAJARISH TARTIBI");
-    lines.push("-".repeat(56));
-    r.steps.forEach((s, i) => lines.push((i + 1) + ". " + s));
-    lines.push("");
+
+  const sections = [];
+  const add = (title, body) => { if (body && body.length) sections.push([title, body]); };
+
+  if (r.goal) add("ISHDAN MAQSAD", wrap(r.goal));
+  if (r.equipment) add("KERAKLI JIHOZLAR", wrap(r.equipment));
+  if (r.theory) add("NAZARIY MA’LUMOT VA FORMULALAR", wrap(r.theory));
+  if (r.inputs && r.inputs.length) {
+    add("BOSHLANG‘ICH MA’LUMOTLAR (VARIANT SHARTI)", r.inputs.map(x => "• " + x[0] + ": " + x[1]));
   }
-  lines.push("O‘LCHOV VA HISOBLASH NATIJALARI");
-  lines.push("-".repeat(56));
-  r.rows.forEach(row => lines.push("• " + row[0] + ": " + row[1]));
+
+  const method = wrap("Amaliy ish virtual laboratoriya muhitida bajarildi: variant sharti tanlandi, boshlang‘ich parametrlar o‘rnatildi, jarayon animatsion sxemada kuzatildi, ko‘rsatkichlar yozib olindi va formula bo‘yicha hisob bajarildi.");
+  if (r.steps && r.steps.length) {
+    method.push("");
+    r.steps.forEach((s, i) => {
+      const wl = wrap(s, 72);
+      method.push("   " + (i + 1) + ") " + wl[0]);
+      wl.slice(1).forEach(l => method.push("      " + l));
+    });
+  }
+  add("ISHNING BAJARILISH TARTIBI", method);
+
+  if (r.big) add("ASOSIY NATIJA", ["• " + (r.bigLabel || "Natija") + ": " + r.big]);
+  if (r.rows && r.rows.length) {
+    add("O‘LCHOV VA HISOBLASH NATIJALARI", r.rows.map(row => "• " + row[0] + ": " + row[1]));
+  }
+  if (r.calc && r.calc.length) add("HISOBLASH", r.calc);
+  if (r.conclusion) add("XULOSA", wrap(r.conclusion));
+  add("QABUL QILINGAN DOIMIYLAR", ["g = 9,81 m/s², π = 3,14; barcha hisoblar SI birliklarida."]);
+
+  sections.forEach((sec, i) => {
+    lines.push("");
+    lines.push((i + 1) + ". " + sec[0]);
+    lines.push("-".repeat(64));
+    sec[1].forEach(l => lines.push(l));
+  });
   lines.push("");
-  lines.push("HISOBLASH");
-  lines.push("-".repeat(56));
-  r.calc.forEach(line => lines.push("  " + line));
-  lines.push("");
-  lines.push("XULOSA");
-  lines.push("-".repeat(56));
-  lines.push(r.conclusion);
-  lines.push("");
-  lines.push("Qabul qilingan doimiylar: g = 9,81 m/s², π = 3,14.");
+  lines.push("Hisobot virtual laboratoriya dasturi tomonidan avtomatik shakllantirildi.");
   return lines.join("\n");
 }
 
