@@ -161,7 +161,7 @@ const ICONS = {
 
 const CARDS = [
   { key: "gidrostatika", name: "Gidrostatika", tagline: "Bosim, suzish, gidravlik press va oqim qonunlari.", count: "6 ish", tags: ["SI", "animatsiya", "TXT"], accent: "#4fd1c5", icon: ICONS.drop },
-  { key: "fizika", name: "Fizika", tagline: "Erkin tushish: balandlik, vaqt va tezlik bog‘lanishi.", count: "1 ish", tags: ["mexanika", "SI", "TXT"], accent: "#5aa9ff", icon: ICONS.atom },
+  { key: "fizika", name: "Fizika", tagline: "Erkin tushish, yadro parchalanishi va adron kollayderi.", count: "3 ish", tags: ["3 ish", "yadro", "TXT"], accent: "#5aa9ff", icon: ICONS.atom },
   { key: "astronomiya", name: "Astronomiya", tagline: "Sayyoralar orbitalari va Kepler uchinchi qonuni.", count: "1 ish", tags: ["Kepler", "orbita", "TXT"], accent: "#b28dff", icon: ICONS.orbit },
   { key: "ekologiya", name: "Ekologiya", tagline: "Suvni filtrlash va ifloslanishni kamaytirish.", count: "1 ish", tags: ["filtr", "suv", "TXT"], accent: "#5ee08a", icon: ICONS.leaf },
   { key: "quymakorlik", name: "Quymakorlik", tagline: "Qizdirish qurilmalari: qizdirgichni hisoblash.", count: "1 ish", tags: ["qizdirish", "nixrom", "TXT"], accent: "#f5b84b", icon: ICONS.crucible },
@@ -181,7 +181,9 @@ const SUBJECT_LABS = {
 
 const defs = {
   fizika: {
-    name: "Fizika",
+    name: "1-ish · Erkin tushish",
+    subject: "fizika",
+    labLabel: "1-ish · Erkin tushish",
     kicker: "Fizika · kinematika",
     title: "Jism balandlikdan qanchalik tez tushadi?",
     goal: "Maqsad: erkin tushishda balandlik, vaqt va tezlik orasidagi bog‘lanishni kuzatish hamda <b>t = √(2h/g)</b> va <b>v = gt</b> formulalarini tekshirish.",
@@ -3172,11 +3174,16 @@ function renderLabTabs(key) {
 function renderSubjectNotes(def) {
   const wrap = $("subject-notes");
   if (!wrap) return;
-  const hasSteps = def.steps && def.steps.length;
-  wrap.hidden = !hasSteps;
-  if (!hasSteps) return;
-  $("subject-steps").innerHTML = def.steps.map(s => "<li>" + s + "</li>").join("");
-  $("subject-questions").innerHTML = (def.questions || []).map(q => "<li>" + q + "</li>").join("");
+  const hasSteps = !!(def.steps && def.steps.length);
+  const hasQuestions = !!(def.questions && def.questions.length);
+  wrap.hidden = !(hasSteps || hasQuestions || def.compute);
+  const stepsCard = $("subject-steps-card");
+  if (stepsCard) stepsCard.hidden = !hasSteps;
+  if (hasSteps) $("subject-steps").innerHTML = def.steps.map(s => "<li>" + s + "</li>").join("");
+  const qs = def.questions || [];
+  $("subject-questions").innerHTML = qs.length
+    ? qs.map(q => "<li>" + q + "</li>").join("")
+    : '<li class="quiz-empty">Bu laboratoriyada og‘zaki savollar yo‘q — «Test» yoki «Viktorina» rejimini tanlang.</li>';
 }
 
 function mountSubject(key) {

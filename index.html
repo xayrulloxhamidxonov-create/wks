@@ -481,9 +481,60 @@ select:focus{border-color:rgba(79,209,197,.55)}
 }
 .lab-notes{max-width:1460px;margin:0 auto;padding:6px 26px 40px}
 .notes-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+.notes-grid:has(#subject-steps-card[hidden]){grid-template-columns:1fr}
+.hydro-quiz-notes .notes-grid{grid-template-columns:1fr}
 .notes-grid ol{margin:10px 0 0 18px;color:var(--muted);font-size:12px;line-height:1.75}
 .notes-grid li{padding-left:4px}
 .notes-grid li::marker{color:var(--teal);font-family:var(--mono);font-size:11px}
+.notes-grid li.quiz-empty{list-style:none;color:var(--dim);font-size:11.5px;line-height:1.6;padding-left:0}
+
+/* quiz */
+.quiz-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.quiz-head-row h3{margin:0}
+.quiz-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.02)}
+.quiz-switch button{
+  border:0;background:transparent;color:var(--dim);border-radius:999px;
+  font-size:9.5px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;padding:5px 10px;
+  transition:color .15s,background .15s;
+}
+.quiz-switch button:hover{color:var(--muted)}
+.quiz-switch button.active{color:#04211f;background:linear-gradient(135deg,#61e0d3,#3cb9cf)}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.quiz-top span{font-size:9.5px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.quiz-top b{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--teal)}
+.quiz-bar{height:4px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-bottom:14px}
+.quiz-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#61e0d3,#5aa9ff);transition:width .25s}
+.quiz-q{font-size:14px;line-height:1.5;font-weight:650;color:var(--ink);margin-bottom:12px}
+.quiz-opts{display:grid;gap:7px}
+.quiz-opt{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  border:1px solid var(--line2);background:rgba(255,255,255,.025);color:var(--ink);
+  border-radius:11px;padding:9px 11px;font-size:12.5px;line-height:1.4;
+  transition:border-color .15s,background .15s;
+}
+.quiz-opt:hover:not(:disabled){border-color:rgba(79,209,197,.45);background:rgba(79,209,197,.06)}
+.quiz-opt:disabled{cursor:default}
+.quiz-letter{
+  display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  background:rgba(255,255,255,.04);border:1px solid var(--line);
+}
+.quiz-opt.ok{border-color:rgba(94,224,138,.5);background:rgba(94,224,138,.1)}
+.quiz-opt.ok .quiz-letter{color:#7de9a8;border-color:rgba(94,224,138,.4);background:rgba(94,224,138,.1)}
+.quiz-opt.bad{border-color:rgba(255,107,107,.5);background:rgba(255,107,107,.1)}
+.quiz-opt.bad .quiz-letter{color:#ff9292;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.1)}
+.quiz-note{
+  margin-top:11px;padding:9px 11px;border-radius:10px;border:1px solid var(--line);
+  background:rgba(255,255,255,.02);color:var(--muted);font-size:11.5px;line-height:1.55;
+}
+.quiz-note b{color:#9ff0e7;font-weight:650}
+.quiz-note.bad b{color:#ff9292}
+.quiz-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.quiz-timer{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.quiz-timer.hot{color:var(--amber)}
+.quiz-result .quiz-score{display:block;font-family:var(--mono);font-size:34px;line-height:1.1;color:var(--teal);margin:6px 0 4px}
+.quiz-result p{font-size:12px;color:var(--muted);line-height:1.55}
+.quiz-kicker{font-size:9.5px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 
 footer{
   border-top:1px solid var(--line);margin-top:26px;padding:20px 26px 30px;
@@ -1270,13 +1321,21 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
     </section>
     <section class="lab-notes" id="subject-notes" hidden>
       <div class="notes-grid">
-        <div class="card">
+        <div class="card" id="subject-steps-card">
           <h3>Bajarish tartibi</h3>
           <ol id="subject-steps"></ol>
         </div>
-        <div class="card">
-          <h3>Nazorat savollari</h3>
+        <div class="card" id="subject-quiz-card">
+          <div class="quiz-head-row">
+            <h3>Bilimni sinash</h3>
+            <div class="quiz-switch" id="quiz-switch" role="tablist" aria-label="Bilimni sinash rejimi">
+              <button type="button" data-quiz-mode="open" class="active" role="tab">Savollar</button>
+              <button type="button" data-quiz-mode="test" role="tab">Test</button>
+              <button type="button" data-quiz-mode="arena" role="tab">Viktorina</button>
+            </div>
+          </div>
           <ol id="subject-questions"></ol>
+          <div id="subject-quiz" hidden></div>
         </div>
       </div>
     </section>
@@ -1286,7 +1345,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 <footer>
   <div class="footer-inner">
     <span><b>Virtual laboratoriya.</b> Barcha hisoblar SI birliklarida, g = 9,81 m/s² asosida.</span>
-    <span>8 fan · 17 ish · animatsiyalar · hisobot</span>
+    <span>8 fan · 33 ish · animatsiyalar · hisobot</span>
   </div>
 </footer>
 
@@ -1296,6 +1355,8 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 <script src="heating-core.js"></script>
 <script src="heating-a.js"></script>
 <script src="heating-b.js"></script>
+<script src="physics-labs.js"></script>
+<script src="quiz.js"></script>
 <script type="module" src="anatomy3d.js"></script>
 </body>
 </html>
