@@ -94,6 +94,18 @@ ul{margin:0}
 }
 .student input:focus{border-color:rgba(79,209,197,.55);background:rgba(79,209,197,.05)}
 .student input::placeholder{color:var(--dim)}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  border:1px solid var(--line);border-radius:999px;padding:7px 11px;
+  background:rgba(255,255,255,.025);white-space:nowrap;
+  transition:border-color .2s,color .2s,background .2s;
+}
+.nav-btn:hover{color:var(--ink);border-color:var(--line2);background:rgba(255,255,255,.05)}
+.nav-btn.teacher{border-color:rgba(245,184,75,.4);color:#f3c46d}
+.nav-btn.teacher:hover{background:rgba(245,184,75,.09);border-color:rgba(245,184,75,.6)}
+.nav-btn.join{border-color:rgba(79,209,197,.4);color:#8fe7de}
+.nav-btn.join:hover{background:rgba(79,209,197,.09);border-color:rgba(79,209,197,.6)}
 
 /* ---------- hero ---------- */
 .hero{padding:38px 26px 6px;max-width:1460px;margin:0 auto}
@@ -536,6 +548,227 @@ select:focus{border-color:rgba(79,209,197,.55)}
 .quiz-result p{font-size:12px;color:var(--muted);line-height:1.55}
 .quiz-kicker{font-size:9.5px;font-weight:750;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 
+/* ---------- teacher panel / classroom ---------- */
+body.tp-lock{overflow:hidden}
+.tp-overlay{
+  position:fixed;inset:0;z-index:120;overflow-y:auto;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 18px;
+  background:rgba(3,8,13,.84);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.tp-overlay[hidden]{display:none}
+.tp-sheet{
+  width:min(720px,100%);margin:auto;padding:22px;
+  background:linear-gradient(180deg,rgba(13,30,46,.98),rgba(7,17,27,.99));
+  border:1px solid var(--line2);border-radius:20px;
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+}
+.tp-sheet.wide{width:min(1240px,100%)}
+.tp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.tp-kicker{font-size:9.5px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+.tp-top h2{font-size:20px;margin-top:6px;line-height:1.25}
+.tp-close{
+  flex:none;width:32px;height:32px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--muted);font-size:18px;line-height:1;display:grid;place-items:center;
+}
+.tp-close:hover{color:var(--ink);border-color:var(--line2)}
+.tp-field{display:block;margin-bottom:12px}
+.tp-field span{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
+.tp-field input{
+  width:100%;background:rgba(255,255,255,.03);border:1px solid var(--line2);
+  border-radius:10px;padding:10px 12px;color:var(--ink);font-size:14px;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.tp-field input:focus{border-color:rgba(79,209,197,.55);background:rgba(79,209,197,.05)}
+.tp-err{margin:0 0 12px;padding:9px 11px;border-radius:10px;border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.08);color:#ffb0b0;font-size:11.5px;line-height:1.5}
+.tp-hint{margin-top:14px;font-size:11px;line-height:1.65;color:var(--dim)}
+.tp-hint b{color:var(--muted);font-family:var(--mono);font-weight:600}
+.tp-user{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted)}
+.tp-user b{color:var(--ink)}
+.tp-linkbtn{border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:9px;padding:6px 10px;font-size:10.5px;cursor:pointer}
+.tp-linkbtn:hover{color:var(--ink);border-color:var(--line2)}
+.tp-drop{
+  border:1px dashed rgba(79,209,197,.42);border-radius:16px;padding:26px 18px;text-align:center;
+  background:rgba(79,209,197,.04);transition:border-color .2s,background .2s;
+}
+.tp-drop.drag{border-color:var(--teal);background:rgba(79,209,197,.1)}
+.tp-drop b{display:block;font-size:15px;margin-bottom:6px}
+.tp-drop span{display:block;color:var(--dim);font-size:11.5px;line-height:1.55;margin-bottom:14px}
+.tp-progress{margin-top:14px}
+.tp-progress i{display:block;height:4px;width:0;border-radius:999px;background:linear-gradient(90deg,#61e0d3,#5aa9ff);transition:width .35s}
+.tp-progress span{display:block;margin-top:7px;font-size:11px;color:var(--muted)}
+.tp-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:13px}
+.tp-link{border:0;background:none;padding:0;color:var(--teal);font-size:11px;text-decoration:underline;cursor:pointer}
+.tp-link:hover{color:#8ff1e8}
+.tp-guide{margin-top:12px;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02);font-size:11.5px;line-height:1.65;color:var(--muted)}
+.tp-guide b{color:var(--ink)}
+.tp-guide pre{
+  margin:8px 0 0;padding:10px;border-radius:9px;overflow-x:auto;
+  background:rgba(0,0,0,.28);border:1px solid var(--line);
+  font-family:var(--mono);font-size:10.5px;line-height:1.55;color:#bfe9e2;
+}
+.tp-rooms{display:grid;gap:8px;margin-top:18px}
+.tp-empty{margin:14px 0 0;font-size:11.5px;color:var(--dim)}
+.tp-room{
+  display:flex;align-items:center;gap:10px;
+  border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  background:rgba(255,255,255,.02);
+}
+.tp-room-code{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--teal);flex:none}
+.tp-room-main{flex:1;min-width:0}
+.tp-room-main b{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-room-main span{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.tp-room button{
+  flex:none;border:1px solid var(--line2);background:rgba(255,255,255,.03);
+  color:var(--muted);border-radius:9px;padding:6px 11px;font-size:10.5px;cursor:pointer;
+}
+.tp-room button:hover{color:var(--ink);border-color:rgba(79,209,197,.5)}
+.tp-classroom-top{
+  position:sticky;top:-24px;z-index:2;margin:-22px -22px 16px;padding:16px 22px;
+  background:rgba(6,15,24,.97);border-bottom:1px solid var(--line);border-radius:20px 20px 0 0;
+}
+.tp-code-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
+.tp-code{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:.22em;color:var(--teal);line-height:1.1}
+.tp-copy{
+  border:1px solid rgba(79,209,197,.4);background:rgba(79,209,197,.06);
+  color:#9ff0e7;border-radius:9px;padding:6px 11px;font-size:10.5px;cursor:pointer;
+}
+.tp-copy:hover{background:rgba(79,209,197,.12)}
+.tp-room-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:7px;font-size:11px;color:var(--dim)}
+.cr-head{margin-bottom:16px}
+.cr-head h2{font-size:19px;line-height:1.3}
+.cr-head p{margin-top:7px;font-size:12px;line-height:1.6;color:var(--muted)}
+.cr-badge{
+  display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:#9ff0e7;border:1px solid rgba(79,209,197,.3);border-radius:999px;padding:4px 9px;
+  background:rgba(79,209,197,.06);
+}
+.cr-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(290px,.75fr);gap:16px}
+.cr-canvas-wrap{
+  position:relative;border:1px solid var(--line2);border-radius:18px;overflow:hidden;
+  background:#06131f;min-height:340px;
+}
+.cr-canvas-wrap canvas{display:block;width:100%;height:100%;min-height:340px}
+.cr-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cr-side .card{background:rgba(255,255,255,.025)}
+.cr-note{margin-top:10px;font-size:10.5px;line-height:1.55;color:var(--dim)}
+.cr-formula{
+  font-family:var(--mono);font-size:11px;line-height:1.7;color:#bfe9e2;
+  word-break:break-word;
+}
+.cr-formula b{color:var(--teal);font-weight:600}
+
+.air-variant{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.air-variant select{
+  flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--line2);
+  border-radius:10px;padding:9px 10px;color:var(--ink);font-size:12.5px;outline:none;
+}
+.air-variant select:focus{border-color:rgba(79,209,197,.55)}
+.air-count{flex:none;font-family:var(--mono);font-size:10px;color:var(--teal)}
+.air-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.air-inputs label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;color:var(--muted)}
+.air-inputs input{
+  width:100%;min-width:0;background:rgba(255,255,255,.03);border:1px solid var(--line2);
+  border-radius:9px;padding:7px 9px;color:var(--ink);font-size:12px;
+  font-family:var(--mono);outline:none;transition:border-color .2s;
+}
+.air-inputs input:focus{border-color:rgba(79,209,197,.55);background:rgba(79,209,197,.05)}
+.air-big b{font-size:26px}
+.air-big.ok b{color:#8ff1e8}
+.air-big.bad b{color:#ff9090}
+.air-big small{display:block;margin-top:4px}
+.air-status{
+  display:inline-block;margin-top:10px;padding:5px 10px;border-radius:999px;
+  font-size:10.5px;font-weight:700;letter-spacing:.02em;
+  border:1px solid var(--line);color:var(--muted);background:rgba(255,255,255,.03);
+}
+.air-status.ok{color:#8ff1e8;border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.08)}
+.air-status.bad{color:#ffb0b0;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.08)}
+.air-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:12px}
+.air-table th{
+  font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--dim);text-align:right;padding:0 4px 6px;border-bottom:1px solid var(--line);
+}
+.air-table th:first-child{text-align:left}
+.air-table td{
+  padding:6px 4px;border-bottom:1px solid rgba(150,205,235,.07);
+  text-align:right;font-family:var(--mono);color:var(--muted);
+}
+.air-table td:first-child{text-align:left;font-family:inherit;color:var(--ink);font-weight:600}
+.air-table tr:last-child td{border-bottom:0}
+.air-table td.good{color:#8ff1e8}
+.air-table td.bad{color:#ff9090}
+.air-conclusion{margin:0;font-size:11.5px;line-height:1.65;color:var(--muted)}
+.air-devices{margin:9px 0 0;padding-left:16px;font-size:11px;line-height:1.6;color:var(--dim)}
+.air-devices li{margin-bottom:4px}
+.air-formulas{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.air-formulas summary{
+  cursor:pointer;font-size:10.5px;color:var(--teal);list-style:none;
+}
+.air-formulas summary::-webkit-details-marker{display:none}
+.air-formulas summary::before{content:"▸ ";color:var(--dim)}
+.air-formulas[open] summary::before{content:"▾ "}
+.air-formulas pre{
+  margin:8px 0 0;padding:10px;border-radius:9px;overflow-x:auto;
+  background:rgba(0,0,0,.28);border:1px solid var(--line);
+  font-family:var(--mono);font-size:10px;line-height:1.6;color:#bfe9e2;
+}
+.air-students{margin-top:16px}
+.air-students .air-students-list{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;
+}
+.air-students-list{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.air-empty{margin:0;font-size:11px;line-height:1.6;color:var(--dim)}
+.air-student{
+  border:1px solid var(--line);border-radius:11px;padding:9px 10px;
+  background:rgba(255,255,255,.02);
+}
+.air-student-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.air-student-top b{font-size:12px;font-weight:650;color:var(--ink)}
+.air-student-time{flex:none;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.air-student-sum{margin:5px 0 0;font-size:10.5px;line-height:1.55;color:var(--muted)}
+.air-tag{
+  display:inline-block;margin-right:6px;padding:2px 7px;border-radius:999px;
+  font-size:9px;font-weight:700;border:1px solid var(--line);vertical-align:1px;
+}
+.air-tag.ok{color:#8ff1e8;border-color:rgba(79,209,197,.4);background:rgba(79,209,197,.08)}
+.air-tag.bad{color:#ffb0b0;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.08)}
+.air-student details{margin-top:8px;border-top:1px solid var(--line);padding-top:7px}
+.air-student summary{cursor:pointer;font-size:10px;color:var(--teal);list-style:none}
+.air-student summary::-webkit-details-marker{display:none}
+.air-student summary::before{content:"▸ ";color:var(--dim)}
+.air-student details[open] summary::before{content:"▾ "}
+.air-student .air-table{margin-top:8px;font-size:10px}
+.air-student .readout{margin-top:8px}
+.air-student .readout td{padding:4px 0;font-size:10.5px}
+.air-refresh{
+  margin-top:9px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  border-radius:8px;padding:5px 9px;font-size:10px;cursor:pointer;
+}
+.air-refresh:hover{color:var(--ink);border-color:var(--line2)}
+
+@media (max-width:1120px){
+  .cr-grid{grid-template-columns:1fr}
+  .cr-canvas-wrap{min-height:280px}
+  .cr-canvas-wrap canvas{min-height:280px}
+}
+@media (max-width:720px){
+  .nav-btn{padding:6px 8px;font-size:9.5px;gap:5px}
+  .nav-btn .full{display:none}
+  .tp-overlay{padding:10px}
+  .tp-sheet{padding:16px;border-radius:16px}
+  .tp-classroom-top{top:-16px;margin:-16px -16px 14px;padding:13px 16px;border-radius:16px 16px 0 0}
+  .tp-code{font-size:22px}
+  .tp-sheet.wide{width:100%}
+  .tp-user{font-size:11px}
+  .cr-head h2{font-size:16px}
+  .air-table{font-size:10.5px}
+  .air-big b{font-size:21px}
+}
+
 footer{
   border-top:1px solid var(--line);margin-top:26px;padding:20px 26px 30px;
 }
@@ -606,6 +839,8 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
     </a>
     <div class="top-metas">
       <button class="chip nav-chip" type="button" id="nav-home">Fanlar</button>
+      <button class="nav-btn teacher" type="button" id="nav-teacher">O‘qituvchilar<span class="full"> uchun</span></button>
+      <button class="nav-btn join" type="button" id="nav-join">Sinf honasi<span class="full">ga kirish</span></button>
       <span class="chip"><i></i>g = 9,81 m/s²</span>
       <label class="student">Talaba
         <input id="student-name" type="text" placeholder="F.I.Sh. (hisobot uchun)" maxlength="60" autocomplete="off">
@@ -1342,6 +1577,113 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
   </main>
 </div>
 
+<!-- ================= O‘QITUVCHILAR PANELI ================= -->
+<div class="tp-overlay" id="teacher-overlay" hidden>
+  <div class="tp-sheet" role="dialog" aria-modal="true" aria-labelledby="tp-title">
+    <div class="tp-top">
+      <div>
+        <div class="tp-kicker">O‘qituvchilar paneli</div>
+        <h2 id="tp-title">Tizimga kirish</h2>
+      </div>
+      <button class="tp-close" type="button" data-tp-close="teacher" aria-label="Yopish">×</button>
+    </div>
+
+    <div id="tp-login">
+      <form id="tp-login-form" autocomplete="off">
+        <label class="tp-field"><span>O‘qituvchi ID</span>
+          <input id="tp-id" type="text" placeholder="Admin bergan ID" maxlength="40" autocomplete="username">
+        </label>
+        <label class="tp-field"><span>Parol</span>
+          <input id="tp-pass" type="password" placeholder="Parol" maxlength="60" autocomplete="current-password">
+        </label>
+        <p class="tp-err" id="tp-login-err" hidden></p>
+        <button class="btn primary wide" type="submit">Kirish</button>
+      </form>
+      <p class="tp-hint">Demo kirish: ID <b>ustoz01</b> · parol <b>demo2026</b><br>Haqiqiy versiyada ID va parol admin tomonidan beriladi.</p>
+    </div>
+
+    <div id="tp-panel" hidden>
+      <div class="tp-user">
+        <span>Xush kelibsiz, <b id="tp-name"></b></span>
+        <button class="tp-linkbtn" id="tp-logout" type="button">Chiqish</button>
+      </div>
+      <div class="tp-drop" id="tp-drop">
+        <b>Amaliy ish faylini yuklang</b>
+        <span>PDF, Word (.docx), TXT yoki MD faylni bu yerga tashlang yoki tanlang — 8 MB gacha.<br>Fayl avtomatik tahlil qilinadi va sinf honasi ochiladi.</span>
+        <button class="btn primary" id="tp-pick" type="button">Fayl tanlash</button>
+        <input id="tp-file" type="file" accept=".pdf,.docx,.doc,.txt,.md,.csv,.json" hidden>
+      </div>
+      <div class="tp-progress" id="tp-progress" hidden>
+        <i id="tp-bar"></i>
+        <span id="tp-stage">Fayl o‘qilmoqda…</span>
+      </div>
+      <p class="tp-err" id="tp-error" hidden></p>
+      <div class="tp-links">
+        <button class="tp-link" id="tp-sample" type="button">JSON namuna (ixtiyoriy)</button>
+        <button class="tp-link" id="tp-guide" type="button">Fayl formati</button>
+      </div>
+      <div class="tp-guide" id="tp-guide-box" hidden>
+        <b>PDF yoki Word (.docx) yuklang.</b> Dastur hujjat matnidan ish nomi, maqsad, jihozlar va formulani o‘qiydi. Formula alohida qatorda aniq bo‘lsin: <b>p = ρgh</b> yoki <b>p = rho * g * h</b>. Kattaliklar matnda berilgan bo‘lsa (masalan, ρ = 1000 kg/m³, h = 0,8 m), slayderlar shu qiymatlardan boshlanadi.
+        <br>Qo‘llanadi: <b>.pdf</b>, <b>.docx</b>, <b>.txt</b>, <b>.md</b>. Eski <b>.doc</b> formatini Wordda .docx yoki PDF qilib saqlang. Skanerlangan (rasm) PDF ichidagi matn o‘qilmaydi.
+        <br><br><b>Ixtiyoriy JSON shakli — eng aniq natija uchun:</b>
+        <pre>{
+  "title": "Suyuqlik bosimi",
+  "goal": "Chuqurlik ortishi bilan bosim o‘zgarishini kuzatish.",
+  "formula": "p = rho * g * h",
+  "result": { "label": "Bosim, p", "unit": "Pa", "dec": 1 },
+  "variables": [
+    { "id": "rho", "label": "Zichlik, rho", "min": 700, "max": 2000, "step": 10, "value": 1000, "unit": "kg/m³" },
+    { "id": "h", "label": "Chuqurlik, h", "min": 0.1, "max": 2, "step": 0.05, "value": 0.8, "unit": "m" }
+  ]
+}</pre>
+      </div>
+      <div class="tp-rooms" id="tp-rooms"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SINF HONASIGA KIRISH ================= -->
+<div class="tp-overlay" id="join-overlay" hidden>
+  <div class="tp-sheet" role="dialog" aria-modal="true" aria-labelledby="join-title">
+    <div class="tp-top">
+      <div>
+        <div class="tp-kicker">Talabalar uchun</div>
+        <h2 id="join-title">Sinf honasiga kirish</h2>
+      </div>
+      <button class="tp-close" type="button" data-tp-close="join" aria-label="Yopish">×</button>
+    </div>
+    <form id="join-form" autocomplete="off">
+      <label class="tp-field"><span>Sinf honasi kodi</span>
+        <input id="join-code" type="text" placeholder="Masalan, K7M2QX" maxlength="6" autocapitalize="characters">
+      </label>
+      <label class="tp-field"><span>Ism va familiya</span>
+        <input id="join-name" type="text" placeholder="F.I.Sh." maxlength="60">
+      </label>
+      <p class="tp-err" id="join-err" hidden></p>
+      <button class="btn primary wide" type="submit">Sinf honasiga kirish</button>
+    </form>
+    <p class="tp-hint">Sinf honasi kodini o‘qituvchidan oling. Demo versiyada sinf honasi shu brauzerda yaratilgan bo‘lsa ochiladi.</p>
+  </div>
+</div>
+
+<!-- ================= SINF HONASI OYNASI ================= -->
+<div class="tp-overlay" id="classroom-overlay" hidden>
+  <div class="tp-sheet wide" role="dialog" aria-modal="true" aria-labelledby="cr-code">
+    <div class="tp-top tp-classroom-top">
+      <div>
+        <div class="tp-kicker">Sinf honasi</div>
+        <div class="tp-code-row">
+          <span class="tp-code" id="cr-code">------</span>
+          <button class="tp-copy" id="cr-copy" type="button">Nusxalash</button>
+        </div>
+        <div class="tp-room-meta" id="cr-meta"></div>
+      </div>
+      <button class="tp-close" type="button" data-tp-close="classroom" aria-label="Yopish">×</button>
+    </div>
+    <div id="cr-body"></div>
+  </div>
+</div>
+
 <footer>
   <div class="footer-inner">
     <span><b>Virtual laboratoriya.</b> Barcha hisoblar SI birliklarida, g = 9,81 m/s² asosida.</span>
@@ -1357,6 +1699,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 <script src="heating-b.js"></script>
 <script src="physics-labs.js"></script>
 <script src="quiz.js"></script>
+<script src="teacher.js"></script>
 <script type="module" src="anatomy3d.js"></script>
 </body>
 </html>
