@@ -585,6 +585,13 @@ body.tp-lock{overflow:hidden}
 .tp-err{margin:0 0 12px;padding:9px 11px;border-radius:10px;border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.08);color:#ffb0b0;font-size:11.5px;line-height:1.5}
 .tp-hint{margin-top:14px;font-size:11px;line-height:1.65;color:var(--dim)}
 .tp-hint b{color:var(--muted);font-family:var(--mono);font-weight:600}
+.tp-net{margin:12px 0 0;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--muted);font-size:11.5px;line-height:1.5}
+.tp-net[hidden]{display:none}
+.tp-net.err{border-color:rgba(255,107,107,.35);background:rgba(255,107,107,.08);color:#ffb0b0}
+.cr-net{color:var(--dim)}
+.cr-net.ok{color:#8ff1e8}
+.cr-net.warn{color:#f3c46d}
+.cr-net.bad{color:#ffb0b0}
 .tp-user{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted)}
 .tp-user b{color:var(--ink)}
 .tp-linkbtn{border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:9px;padding:6px 10px;font-size:10.5px;cursor:pointer}
@@ -1660,9 +1667,10 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
         <input id="join-name" type="text" placeholder="F.I.Sh." maxlength="60">
       </label>
       <p class="tp-err" id="join-err" hidden></p>
+      <p class="tp-net" id="join-status" hidden></p>
       <button class="btn primary wide" type="submit">Sinf honasiga kirish</button>
     </form>
-    <p class="tp-hint">Sinf honasi kodini o‘qituvchidan oling. Demo versiyada sinf honasi shu brauzerda yaratilgan bo‘lsa ochiladi.</p>
+    <p class="tp-hint">Kodni o‘qituvchidan oling. Kodni kiritgach talaba boshqa qurilmadan ham sinf honasiga ulanadi; o‘qituvchi sinf honasini ochiq turishi kerak.</p>
   </div>
 </div>
 
@@ -1699,6 +1707,7 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 <script src="heating-b.js"></script>
 <script src="physics-labs.js"></script>
 <script src="quiz.js"></script>
+<script src="peerjs.min.js"></script>
 <script src="teacher.js"></script>
 <script type="module" src="anatomy3d.js"></script>
 </body>

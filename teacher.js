@@ -962,6 +962,7 @@
     try { localStorage.setItem(ROOMS_KEY, JSON.stringify(all)); } catch (e) { /* xotira to‘lgan */ }
     rooms = all;
     room.results = fresh.results;
+    netSendResult(code, name, record);
   }
 
   function scheduleStudentResult(room, name, build) {
@@ -972,6 +973,277 @@
       try { rec = build(); } catch (e) { return; }
       saveStudentResult(room, name, rec);
     }, 450);
+  }
+
+  /* ---------------- onlayn sinfxona (WebRTC / PeerJS) ----------------
+     Sinfxona ma’lumotlari serverda saqlanmaydi: o‘qituvchi va talaba
+     brauzerlari to‘g‘ridan-to‘g‘ri, shifrlangan kanal orqali ulanadi. */
+
+  const PEER_PREFIX = "vlabwks-";
+  const PEER_OPTS = {
+    debug: 0,
+    config: {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ]
+    }
+  };
+
+  let net = null;
+  let joinTimer = 0;
+  let cardTimer = 0;
+
+  function roomSpec(room) {
+    let copy;
+    try { copy = JSON.parse(JSON.stringify(room)); } catch (e) { return null; }
+    delete copy.results;
+    return copy;
+  }
+
+  function netStatus(kind, text) {
+    const span = byId("cr-net");
+    if (!span) return;
+    span.className = "cr-net" + (kind ? " " + kind : "");
+    span.textContent = text || "● Oflayn";
+  }
+
+  function setJoinNote(text, isErr) {
+    const note = byId("join-status");
+    if (!note) return;
+    if (!text) {
+      note.hidden = true;
+      note.className = "tp-net";
+      note.textContent = "";
+      return;
+    }
+    note.hidden = false;
+    note.className = "tp-net" + (isErr ? " err" : "");
+    note.textContent = text;
+  }
+
+  function netStop() {
+    if (joinTimer) { clearTimeout(joinTimer); joinTimer = 0; }
+    const state = net;
+    net = null;
+    if (state) {
+      if (state.conn) { try { state.conn.close(); } catch (e) {} }
+      if (state.peer) { try { state.peer.destroy(); } catch (e) {} }
+    }
+    netStatus(null);
+  }
+
+  function netRoomNow(code) {
+    if (rooms[code]) return rooms[code];
+    if (current && current.room && String(current.room.code) === String(code)) return current.room;
+    return null;
+  }
+
+  function netBroadcastRoom() {
+    if (!net || net.role !== "teacher") return;
+    const room = netRoomNow(net.code);
+    const spec = room ? roomSpec(room) : null;
+    if (!spec) return;
+    net.conns.forEach(conn => {
+      if (!conn || !conn.open) return;
+      try { conn.send({ type: "room", room: spec }); } catch (e) {}
+    });
+  }
+
+  function netSendResult(code, name, record) {
+    if (!net || net.role !== "student" || !net.conn || !net.conn.open) return;
+    if (String(net.code).toUpperCase() !== String(code).toUpperCase()) return;
+    try { net.conn.send({ type: "result", name, record }); } catch (e) {}
+  }
+
+  function netHost(room) {
+    if (!window.Peer) { netStatus("bad", "● Onlayn rejim yuklanmadi"); return; }
+    netStop();
+    const state = { role: "teacher", code: room.code, peer: null, conns: [], tries: 0 };
+    net = state;
+
+    const start = () => {
+      if (net !== state) return;
+      let peer;
+      try {
+        peer = new window.Peer(PEER_PREFIX + String(room.code).toLowerCase(), PEER_OPTS);
+      } catch (e) {
+        netStatus("bad", "● Ulanmadi");
+        return;
+      }
+      state.peer = peer;
+      netStatus("warn", "● Ulanmoqda…");
+      peer.on("open", () => { if (net === state) netStatus("ok", "● Onlayn"); });
+      peer.on("disconnected", () => { if (net === state) netStatus("warn", "● Qayta ulanmoqda…"); });
+      peer.on("error", err => {
+        if (net !== state) return;
+        const type = err && err.type;
+        if (type === "unavailable-id") {
+          if (!state.tries) {
+            state.tries++;
+            try { peer.destroy(); } catch (e) {}
+            netStatus("warn", "● Qayta urinilmoqda…");
+            setTimeout(start, 1400);
+          } else {
+            netStatus("bad", "● Kod band");
+          }
+        } else if (type === "network" || type === "server-error") {
+          netStatus("bad", "● Server bilan aloqa yo‘q");
+        } else {
+          netStatus("warn", "● Aloqa zaif");
+        }
+      });
+      peer.on("connection", conn => {
+        if (net !== state) { try { conn.close(); } catch (e) {} return; }
+        state.conns.push(conn);
+        conn.on("open", () => { if (net === state) netBroadcastRoom(); });
+        conn.on("data", data => { if (net === state) netTeacherData(room.code, data); });
+        const drop = () => { state.conns = state.conns.filter(c => c !== conn); };
+        conn.on("close", drop);
+        conn.on("error", drop);
+      });
+    };
+
+    start();
+  }
+
+  function netTeacherData(code, data) {
+    if (!data || typeof data !== "object") return;
+    const room = netRoomNow(code);
+    if (!room) return;
+    const name = String(data.name || "").trim().slice(0, 80);
+    if (data.type === "join") {
+      if (!name) return;
+      if (!Array.isArray(room.participants)) room.participants = [];
+      if (!room.participants.some(p => String(p).toLowerCase() === name.toLowerCase())) {
+        room.participants.push(name);
+        rooms[room.code] = room;
+        saveRooms();
+      }
+      netBroadcastRoom();
+      updateRoomMeta();
+      refreshStudentsCard();
+      return;
+    }
+    if (data.type === "result") {
+      if (!name || !data.record || typeof data.record !== "object") return;
+      saveStudentResult(room, name, data.record);
+      updateRoomMeta();
+      refreshStudentsCard();
+      netBroadcastRoom();
+    }
+  }
+
+  function netJoin(code, name) {
+    if (!window.Peer) {
+      setJoinNote("Onlayn ulanish yuklanmadi. Internetni tekshirib, sahifani yangilang.", true);
+      return;
+    }
+    netStop();
+    const state = { role: "student", code, name, peer: null, conn: null, opened: false };
+    net = state;
+    setJoinNote("Sinf honaga ulanmoqda…");
+
+    let peer;
+    try { peer = new window.Peer(PEER_OPTS); }
+    catch (e) { net = null; setJoinNote("Ulanishni boshlab bo‘lmadi.", true); return; }
+    state.peer = peer;
+
+    const fail = msg => {
+      if (net !== state) return;
+      netStop();
+      setJoinNote(msg, true);
+    };
+
+    peer.on("error", err => {
+      if (net !== state) return;
+      const type = err && err.type;
+      if (type === "peer-unavailable") fail("Bunday kodli sinf honasi topilmadi yoki o‘qituvchi onlayn emas.");
+      else if (type === "network" || type === "server-error") fail("Server bilan aloqa yo‘q. Internetni tekshiring.");
+    });
+
+    peer.on("open", () => {
+      if (net !== state) return;
+      let conn;
+      try { conn = peer.connect(PEER_PREFIX + String(code).toLowerCase(), { reliable: true }); }
+      catch (e) { fail("Ulanishda xatolik yuz berdi."); return; }
+      state.conn = conn;
+      conn.on("open", () => {
+        if (net !== state) return;
+        setJoinNote("O‘qituvchi javobi kutilmoqda…");
+        try { conn.send({ type: "join", name }); } catch (e) {}
+        netStatus("ok", "● Onlayn");
+      });
+      conn.on("data", data => {
+        if (net !== state) return;
+        if (!data || data.type !== "room" || !data.room) return;
+        const room = data.room;
+        if (!room.code) room.code = code;
+        if (String(room.code).toUpperCase() !== String(code).toUpperCase()) return;
+        if (joinTimer) { clearTimeout(joinTimer); joinTimer = 0; }
+        setJoinNote(null);
+        if (!state.opened) {
+          state.opened = true;
+          room.remote = true;
+          try { localStorage.setItem("gidrostatika-student", name); } catch (e2) {}
+          const studentInput = byId("student-name");
+          if (studentInput) studentInput.value = name;
+          openClassroom(room, "student", name);
+        } else if (current && current.room && String(current.room.code) === String(room.code)) {
+          current.room.participants = Array.isArray(room.participants) ? room.participants : [];
+          updateRoomMeta();
+        }
+      });
+      const lost = () => {
+        if (net !== state) return;
+        netStatus("bad", "● Aloqa uzildi");
+        if (!state.opened) fail("O‘qituvchi bilan aloqa uzildi. Qayta urinib ko‘ring.");
+      };
+      conn.on("close", lost);
+      conn.on("error", lost);
+    });
+
+    joinTimer = setTimeout(() => {
+      joinTimer = 0;
+      if (net !== state || state.opened) return;
+      fail("Javob kelmadi. Kodni tekshiring va o‘qituvchi sinf honasini ochganini so‘rang.");
+    }, 15000);
+  }
+
+  function updateRoomMeta() {
+    const room = current && current.room ? netRoomNow(current.room.code) : null;
+    if (!room) return;
+    const span = document.querySelector("#cr-meta [data-cr-students]");
+    if (span) span.textContent = "Talabalar: " + ((room.participants || []).length);
+  }
+
+  function refreshStudentsCard() {
+    if (cardTimer) clearTimeout(cardTimer);
+    cardTimer = setTimeout(() => { cardTimer = 0; renderStudentsCard(); }, 350);
+  }
+
+  function renderStudentsCard() {
+    if (!current || current.role !== "teacher") return;
+    const host = byId("cr-body");
+    if (!host) return;
+    const old = host.querySelector(".air-students");
+    if (!old) return;
+    const room = netRoomNow(current.room.code);
+    if (!room) return;
+    const opened = Array.prototype.map.call(
+      old.querySelectorAll(".air-student"),
+      node => (node.querySelector("details[open]") ? (node.querySelector("b") || {}).textContent : null)
+    ).filter(Boolean);
+    const fresh = buildStudentsCard(room, "teacher");
+    if (!fresh) return;
+    old.replaceWith(fresh);
+    if (opened.length) {
+      fresh.querySelectorAll(".air-student").forEach(node => {
+        const nm = (node.querySelector("b") || {}).textContent;
+        const details = node.querySelector("details");
+        if (details && opened.indexOf(nm) > -1) details.open = true;
+      });
+    }
   }
 
   function studentFileName(room, name) {
@@ -1068,6 +1340,7 @@
     o.hidden = true;
     if (id === "classroom-overlay") {
       if (stopAnim) { stopAnim(); stopAnim = null; }
+      netStop();
       current = null;
     }
     if (!anyOpen()) document.body.classList.remove("tp-lock");
@@ -1200,8 +1473,10 @@
   }
 
   function openClassroom(room, role, studentName) {
-    const fresh = loadRooms()[room.code];
-    if (fresh) room = fresh;
+    if (role === "teacher") {
+      const fresh = loadRooms()[room.code];
+      if (fresh) room = fresh;
+    }
     current = { room, role, name: studentName };
     byId("cr-code").textContent = room.code;
     const meta = byId("cr-meta");
@@ -1212,11 +1487,22 @@
     } else {
       meta.append(el("span", "", "Parametrlar: " + room.variables.length));
     }
-    meta.append(el("span", "", "Talabalar: " + ((room.participants || []).length)));
+    const count = el("span", "", "Talabalar: " + ((room.participants || []).length));
+    count.setAttribute("data-cr-students", "");
+    meta.append(count);
     if (role === "student" && studentName) meta.append(el("span", "", "Talaba: " + studentName));
+    const netDot = el("span", "cr-net", "● Oflayn");
+    netDot.id = "cr-net";
+    meta.append(netDot);
     closeOverlay("join-overlay");
     openOverlay("classroom-overlay");
     renderLab(room, byId("cr-body"), role, studentName);
+
+    if (role === "teacher") {
+      netHost(room);
+    } else if (net && net.role === "student") {
+      netStatus(net.conn && net.conn.open ? "ok" : "warn", net.conn && net.conn.open ? "● Onlayn" : "● Ulanmoqda…");
+    }
   }
 
   function renderLab(room, host, role, studentName) {
@@ -2238,6 +2524,8 @@
       const err = byId("join-err");
       const code = byId("join-code").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
       const name = byId("join-name").value.trim().replace(/\s+/g, " ");
+      err.hidden = true;
+      setJoinNote(null);
       if (code.length < 4) {
         err.textContent = "Sinf honasi kodini kiriting.";
         err.hidden = false;
@@ -2250,25 +2538,24 @@
       }
       rooms = loadRooms();
       const room = rooms[code];
-      if (!room) {
-        err.textContent = "Bunday kodli sinf honasi topilmadi. Demo versiyada sinf honasi faqat shu brauzerda yaratilgan bo‘lsa ochiladi.";
-        err.hidden = false;
+      if (room && !room.remote) {
+        if (!Array.isArray(room.participants)) room.participants = [];
+        const existing = room.participants.find(p => String(p).toLowerCase() === name.toLowerCase());
+        if (!existing) {
+          room.participants.push(name);
+          rooms[code] = room;
+          saveRooms();
+        }
+        const displayName = existing || name;
+        try { localStorage.setItem("gidrostatika-student", displayName); } catch (e2) {}
+        const studentInput = byId("student-name");
+        if (studentInput) studentInput.value = displayName;
+        byId("join-form").reset();
+        openClassroom(room, "student", displayName);
         return;
       }
-      if (!Array.isArray(room.participants)) room.participants = [];
-      const existing = room.participants.find(p => String(p).toLowerCase() === name.toLowerCase());
-      if (!existing) {
-        room.participants.push(name);
-        rooms[code] = room;
-        saveRooms();
-      }
-      const displayName = existing || name;
-      try { localStorage.setItem("gidrostatika-student", displayName); } catch (e2) {}
-      const studentInput = byId("student-name");
-      if (studentInput) studentInput.value = displayName;
-      err.hidden = true;
       byId("join-form").reset();
-      openClassroom(room, "student", displayName);
+      netJoin(code, name);
     });
   }
 
