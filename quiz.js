@@ -81,12 +81,12 @@
   };
 
   const HYDRO_META = {
-    "hydro-1": { subject: "Gidrostatika", title: "1-laboratoriya. Suyuqlik bosimi va chuqurlik" },
-    "hydro-2": { subject: "Gidrostatika", title: "2-laboratoriya. Gidravlik press" },
-    "hydro-3": { subject: "Gidrostatika", title: "3-laboratoriya. Arximed kuchi" },
-    "hydro-4": { subject: "Gidrostatika", title: "4-laboratoriya. Torricelli qonuni" },
-    "hydro-5": { subject: "Gidrostatika", title: "5-laboratoriya. Zichlikni aniqlash" },
-    "hydro-6": { subject: "Gidrostatika", title: "6-laboratoriya. Quvur torayishi" }
+    "hydro-1": { subject: "Gidravlika", title: "1-laboratoriya. Suyuqlik bosimi va chuqurlik" },
+    "hydro-2": { subject: "Gidravlika", title: "2-laboratoriya. Gidravlik press" },
+    "hydro-3": { subject: "Gidravlika", title: "3-laboratoriya. Arximed kuchi" },
+    "hydro-4": { subject: "Gidravlika", title: "4-laboratoriya. Torricelli qonuni" },
+    "hydro-5": { subject: "Gidravlika", title: "5-laboratoriya. Zichlikni aniqlash" },
+    "hydro-6": { subject: "Gidravlika", title: "6-laboratoriya. Quvur torayishi" }
   };
 
   function liquidOptions() {
@@ -104,7 +104,7 @@
       .map(k => ({ value: k, label: SOLIDS[k].name }));
   }
 
-  /* Gidrostatika laboratoriyalari uchun hisob modellari */
+  /* Gidravlika laboratoriyalari uchun hisob modellari */
   const HYDRO_DEFS = {
     "hydro-1": {
       state: { liquid: "water", h: 0.8 },

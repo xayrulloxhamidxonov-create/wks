@@ -160,7 +160,7 @@ const ICONS = {
 };
 
 const CARDS = [
-  { key: "gidrostatika", name: "Gidrostatika", tagline: "Bosim, suzish, gidravlik press va oqim qonunlari.", count: "6 ish", tags: ["SI", "animatsiya", "TXT"], accent: "#4fd1c5", icon: ICONS.drop },
+  { key: "gidrostatika", name: "Gidravlika", tagline: "Bosim, suzish, gidravlik press va oqim qonunlari.", count: "6 ish", tags: ["SI", "animatsiya", "TXT"], accent: "#4fd1c5", icon: ICONS.drop },
   { key: "fizika", name: "Fizika", tagline: "Erkin tushish, yadro parchalanishi va adron kollayderi.", count: "3 ish", tags: ["3 ish", "yadro", "TXT"], accent: "#5aa9ff", icon: ICONS.atom },
   { key: "astronomiya", name: "Astronomiya", tagline: "Sayyoralar orbitalari va Kepler uchinchi qonuni.", count: "1 ish", tags: ["Kepler", "orbita", "TXT"], accent: "#b28dff", icon: ICONS.orbit },
   { key: "ekologiya", name: "Ekologiya", tagline: "Suvni filtrlash va ifloslanishni kamaytirish.", count: "1 ish", tags: ["filtr", "suv", "TXT"], accent: "#5ee08a", icon: ICONS.leaf },

@@ -2,7 +2,7 @@
 
 /* ============================================================
    VIRTUAL LABORATORIYA
-   Gidrostatika bo‘limi: 6 ta laboratoriya ishi
+   Gidravlika bo‘limi: 6 ta laboratoriya ishi
    Boshqa fanlar subjects.js faylida ulanadi.
    ============================================================ */
 
@@ -180,7 +180,7 @@ function drawBg(ctx, num, title, brand, meta) {
 
   ctx.fillStyle = "rgba(79,209,197,.9)";
   ctx.beginPath(); ctx.arc(30, 31, 3, 0, TAU); ctx.fill();
-  text(ctx, (brand || "GIDROSTATIKA") + (num ? " · " + num + "-ISH" : " · AMALIYOT"), 42, 35, { size: 10.5, color: "rgba(150,200,215,.7)", weight: 700 });
+  text(ctx, (brand || "GIDRAVLIKA") + (num ? " · " + num + "-ISH" : " · AMALIYOT"), 42, 35, { size: 10.5, color: "rgba(150,200,215,.7)", weight: 700 });
   text(ctx, title, 30, 60, { size: 18, color: "rgba(233,246,255,.94)", weight: 650 });
   text(ctx, meta || "g = 9,81 m/s²", CW - 30, 35, { size: 11.5, color: "rgba(150,195,215,.55)", align: "right", mono: true });
 }
@@ -2505,7 +2505,7 @@ document.querySelectorAll("[data-report]").forEach(btn => {
     const lab = labs[n];
     if (!lab) return;
     try {
-      downloadText("gidrostatika-" + n + "-laboratoriya.txt", buildReport(lab.report()));
+      downloadText("gidravlika-" + n + "-laboratoriya.txt", buildReport(lab.report()));
     } catch (e) {
       console.error(e);
       alert("Hisobotni yaratishda xatolik yuz berdi.");
