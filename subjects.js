@@ -1320,7 +1320,7 @@ function drawHeatElement(ctx, s, time) {
   const ac = "245,184,75";
   const opt = { bg: "rgba(" + ac + ",.09)", border: "rgba(" + ac + ",.32)", color: "#f8d79c" };
 
-  subjectBg(ctx, "QUYMAKORLIK", "Qizdirish elementini hisoblash", "NamDTU · 2026 · 1-amaliy");
+  subjectBg(ctx, s.subject || "QUYMAKORLIK", "Qizdirish elementini hisoblash", s.subtitle || "NamDTU · 2026 · 1-amaliy");
 
   let px = 30;
   px += pill(ctx, px, 80, "P = " + fmt(s.p, 1) + " kW", opt) + 8;

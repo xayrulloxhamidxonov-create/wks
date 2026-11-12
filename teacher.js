@@ -2307,7 +2307,9 @@
         t: 1000,
         mat: "X20H80",
         w: Math.max(0.1, toNumber(state.w, 2.4)),
-        variant: ""
+        variant: "",
+        subject: "ELEKTR QARSHILISH PECHLARI",
+        subtitle: "Virtual laboratoriya · hisoblash modeli"
       };
       drawHeatElement(ctx, s, (now - started) / 1000);
       raf = requestAnimationFrame(draw);
