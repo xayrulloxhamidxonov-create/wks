@@ -1679,7 +1679,9 @@
     if (studentsCard) host.append(studentsCard);
 
     refresh();
-    stopAnim = startCanvas(canvas, room, state);
+    const heatModel = isHeaterRoom(room) && typeof drawHeatElement === "function" &&
+      state.p != null && state.u != null && state.w != null;
+    stopAnim = heatModel ? startHeatRoomCanvas(canvas, room, state) : startCanvas(canvas, room, state);
   }
 
   /* ---------------- talabalar natijalari kartasi ---------------- */
@@ -2258,6 +2260,58 @@
       raf = requestAnimationFrame(draw);
     }
 
+    raf = requestAnimationFrame(draw);
+    return function () {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      if (ro) ro.disconnect();
+    };
+  }
+
+  function isHeaterRoom(room) {
+    const text = String((room && room.title) || "") + " " + String((room && room.goal) || "");
+    return /qizdirish|qizdirgich|nixrom|isitish elementi/i.test(text) ||
+      /0\.217/.test(String((room && room.expr) || ""));
+  }
+
+  function startHeatRoomCanvas(canvas, room, state) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return function () {};
+    let w = 1, h = 1, dpr = 1, raf = 0;
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      w = Math.max(1, canvas.clientWidth);
+      h = Math.max(1, canvas.clientHeight);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    let ro = null;
+    if (typeof ResizeObserver === "function") {
+      ro = new ResizeObserver(resize);
+      ro.observe(canvas);
+    }
+    resize();
+
+    const started = performance.now();
+    function draw(now) {
+      if (!canvas.isConnected) { raf = 0; return; }
+      const scale = Math.min(w / CW, h / CH);
+      const ox = (w - CW * scale) / 2;
+      const oy = (h - CH * scale) / 2;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);
+      const s = {
+        p: Math.max(0.1, toNumber(state.p, 12)),
+        u: Math.max(1, toNumber(state.u, 220)),
+        t: 1000,
+        mat: "X20H80",
+        w: Math.max(0.1, toNumber(state.w, 2.4)),
+        variant: ""
+      };
+      drawHeatElement(ctx, s, (now - started) / 1000);
+      raf = requestAnimationFrame(draw);
+    }
     raf = requestAnimationFrame(draw);
     return function () {
       if (raf) cancelAnimationFrame(raf);

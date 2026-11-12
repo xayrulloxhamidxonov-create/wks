@@ -1522,7 +1522,7 @@ function drawHeatElement(ctx, s, time) {
   bx += pill(ctx, bx, 460, "I = " + fmt(r.I, 2) + " A", opt) + 8;
   bx += pill(ctx, bx, 460, "R_t = " + fmt(r.Rt, 2) + " Ω", opt) + 8;
   pill(ctx, bx, 460, "D_sr = " + fmt(r.Dsr1, 1) + "…" + fmt(r.Dsr2, 1) + " mm", opt);
-  pill(ctx, 930, 460, "№" + s.variant + " variant", { align: "right", bg: "rgba(" + ac + ",.09)", border: "rgba(" + ac + ",.32)", color: "#f8d79c" });
+  if (s.variant) pill(ctx, 930, 460, "№" + s.variant + " variant", { align: "right", bg: "rgba(" + ac + ",.09)", border: "rgba(" + ac + ",.32)", color: "#f8d79c" });
 
   text(ctx, "d = 0,217·[(P·1000)²·ρ_t/(U²·w)]^⅓ = " + fmt(r.dCalc, 2) + " mm → d_standart = " + fmt(r.dStd, 1) + " mm ·  L = P·1000/(π·d·10·w) = " + fmt(r.L, 2) + " m", 30, 516, { size: 10, mono: true, color: "rgba(150,195,215,.6)" });
 }
