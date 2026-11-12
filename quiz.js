@@ -133,6 +133,10 @@
         { id: "d1", label: "Kichik porshen diametri, d₁", type: "range", min: 3, max: 10, step: 0.5, value: 6, unit: "sm", dec: 1 },
         { id: "d2", label: "Katta porshen diametri, d₂", type: "range", min: 8, max: 30, step: 1, value: 18, unit: "sm", dec: 0 }
       ],
+      notes: {
+        "Katta porshen yo‘li, s₂": "Kichik porshen yo‘li, s₁ = 6 sm",
+        "Bajarilgan ish, W": "Kichik porshen yo‘li, s₁ = 6 sm"
+      },
       compute(s) {
         const d1 = +s.d1, d2 = +s.d2, f1 = +s.f1;
         const a1 = Math.PI * d1 * d1 / 4;
@@ -164,6 +168,13 @@
         { id: "liquid", label: "Suyuqlik", type: "select", value: "water", options: liquidOptions() },
         { id: "f", label: "Botish ulushi, f", type: "range", min: 10, max: 100, step: 5, value: 50, unit: "%", dec: 0 }
       ],
+      notes: {
+        "Jism massasi, m": "Jism hajmi, V = 1 L",
+        "Og‘irlik, P": "Jism hajmi, V = 1 L",
+        "To‘liq botgandagi F_A": "Jism hajmi, V = 1 L",
+        "Hozirgi F_A": "Jism hajmi, V = 1 L",
+        "Sath ko‘tarilishi, Δh": "Idish kesimi, S = 200 sm²"
+      },
       compute(s) {
         const rhoS = SOLIDS[s.solid].rho;
         const rhoL = LIQUIDS[s.liquid].rho;
@@ -195,6 +206,9 @@
         { id: "d", label: "Teshik diametri, d", type: "range", min: 2, max: 12, step: 0.5, value: 6, unit: "mm", dec: 1 },
         { id: "liquid", label: "Suyuqlik", type: "select", value: "water", options: liquidOptions() }
       ],
+      notes: {
+        "Oqim masofasi, x": "Teshikdan yergacha balandlik, H₂ = 0,70 m"
+      },
       compute(s) {
         const h = +s.h, d = +s.d;
         const v = Math.sqrt(2 * G * h);
@@ -252,6 +266,10 @@
         { id: "d2", label: "Tor quvur diametri, d₂", type: "range", min: 20, max: 70, step: 5, value: 50, unit: "mm", dec: 0 },
         { id: "liquid", label: "Suyuqlik", type: "select", value: "water", options: liquidOptions() }
       ],
+      notes: {
+        "Tor quvurdagi bosim, p₂": "Keng quvurdagi bosim, p₀ = 40 kPa",
+        "Bosim farqi, Δp": "Keng quvurdagi bosim, p₀ = 40 kPa"
+      },
       compute(s) {
         const Q = (+s.q) / 1000;
         const rho = LIQUIDS[s.liquid].rho;
@@ -294,7 +312,11 @@
   }
 
   function parseNum(str) {
-    const m = String(str).replace(/[\u2009\u202f]/g, "").replace(/−/g, "-").match(/-?\d+(?:[.,]\d+)?/);
+    const s = String(str)
+      .replace(/[\u2009\u202f]/g, "")
+      .replace(/−/g, "-")
+      .replace(/(\d)[\s]+(?=\d)/g, "$1");
+    const m = s.match(/-?\d+(?:[.,]\d+)?/);
     return m ? parseFloat(m[0].replace(",", ".")) : NaN;
   }
 
@@ -313,11 +335,15 @@
   function snap(v, c) {
     const step = +c.step || 1;
     const x = Math.round((v - c.min) / step) * step + c.min;
-    return Math.min(c.max, Math.max(c.min, x));
+    return +Math.min(c.max, Math.max(c.min, x)).toFixed(10);
   }
 
   function fillOptions(values, correct) {
-    const opts = uniq(values);
+    const opts = [correct];
+    uniq(values).forEach(v => {
+      if (opts.length >= 4 || sameValue(v, correct) || opts.some(o => sameValue(o, v))) return;
+      opts.push(v);
+    });
     const n = parseNum(correct);
     const space = String(correct).indexOf(" ");
     const unit = space > -1 ? String(correct).slice(space) : "";
@@ -325,10 +351,67 @@
     [0.08, -0.08, 0.15, -0.15, 0.25, -0.25, 0.4, -0.4].some(p => {
       if (opts.length >= 4 || !isFinite(n)) return true;
       const v = fmt(n * (1 + p), dec) + unit;
-      if (opts.indexOf(v) < 0) opts.push(v);
+      if (!opts.some(o => sameValue(o, v))) opts.push(v);
       return false;
     });
     return opts.slice(0, 4);
+  }
+
+  function optionLabel(c, value) {
+    const opt = (c.options || []).find(o => String(o.value) === String(value));
+    return opt ? opt.label : String(value);
+  }
+
+  /* Javob “Berilgan” shartlarining o‘zida yozilgan bo‘lsa, savol ma’nosiz bo‘ladi */
+  function printedAnswer(parts, correct) {
+    const ans = parseNum(correct);
+    if (!isFinite(ans)) return false;
+    const dec = decimalsOf(correct);
+    const tol = Math.pow(10, -dec) / 2 + 1e-9;
+    return parts.some(t => {
+      const s = String(t)
+        .replace(/[\u2009\u202f]/g, "")
+        .replace(/(\d)[\s]+(?=\d)/g, "$1");
+      const nums = s.match(/-?\d+(?:[.,]\d+)?/g) || [];
+      return nums.some(x => {
+        const v = parseFloat(x.replace(",", "."));
+        return isFinite(v) && Math.abs(v - ans) <= tol;
+      });
+    });
+  }
+
+  /* Savol matnidagi shart: parametr nomi, qiymati va birligi */
+  function conditionText(c, value) {
+    if (c.type === "select") return c.label + ": " + optionLabel(c, value);
+    const dec = c.dec == null ? 0 : c.dec;
+    return c.label + " = " + fmt(+value, dec) + (c.unit ? " " + c.unit : "");
+  }
+
+  function controlSamples(c) {
+    const list = c.type === "range"
+      ? [c.min, (c.min + c.max) / 2, c.max].map(v => snap(v, c))
+      : (c.options || []).map(o => o.value);
+    return uniq(list.map(String));
+  }
+
+  /* Qaysi nazorat qaysi natija qatoriga ta’sir qiladi — savolda faqat shu shartlar ko‘rsatiladi */
+  function rowDeps(def, base, controls) {
+    return controls.map(c => {
+      const dep = {};
+      const samples = controlSamples(c);
+      if (samples.length < 2) return dep;
+      const outs = samples.map(v => {
+        const s = Object.assign({}, def.state);
+        s[c.id] = c.type === "range" ? +v : v;
+        try { return def.compute(s); } catch (e) { return null; }
+      });
+      if (outs.some(o => !o || !Array.isArray(o.readout))) return dep;
+      base.readout.forEach((row, r) => {
+        const values = outs.map(o => (o.readout[r] ? rowValue(o.readout[r]) : ""));
+        if (!values.some(v => !v) && uniq(values).length > 1) dep[r] = true;
+      });
+      return dep;
+    });
   }
 
   function numericQuestions(def, limit) {
@@ -338,10 +421,17 @@
     try { base = def.compute(def.state); } catch (e) { return out; }
     if (!base || !Array.isArray(base.readout)) return out;
 
-    const controls = (def.controls || []).filter(c =>
-      (c.type === "range" && isFinite(c.min) && isFinite(c.max)) ||
-      (c.type === "select" && c.id !== "variant" && (c.options || []).length >= 3)
+    const allControls = (def.controls || []).filter(c => {
+      if (c.id === "variant") return false;
+      if (c.type === "range") return isFinite(c.min) && isFinite(c.max) && c.max > c.min;
+      return c.type === "select" && (c.options || []).length >= 2;
+    });
+    const controls = allControls.filter(c =>
+      c.type === "range" || (c.options || []).length >= 3
     );
+    if (!controls.length) return out;
+
+    const deps = rowDeps(def, base, allControls);
 
     const groups = [];
     for (let ci = 0; ci < controls.length; ci++) {
@@ -360,7 +450,7 @@
 
       const outs = targets.map(t => {
         const s = Object.assign({}, def.state);
-        s[c.id] = t.key;
+        s[c.id] = c.type === "range" ? +t.key : t.key;
         let res = null;
         try { res = def.compute(s); } catch (e) { res = null; }
         return { t: t, out: res };
@@ -375,19 +465,29 @@
         });
         if (values.some(v => !v) || uniq(values).length < 3) continue;
         const rowLabel = base.readout[r][0];
+        const fixed = [];
+        if (def.notes && def.notes[rowLabel]) fixed.push(def.notes[rowLabel]);
+        allControls.forEach((c2, j) => {
+          if (c2 === c || !deps[j][r]) return;
+          const val = def.state[c2.id];
+          if (val == null) return;
+          fixed.push(conditionText(c2, val));
+        });
         const picks = shuffle(outs).slice(0, 2);
         for (let pi = 0; pi < picks.length && group.length < 6; pi++) {
           const pick = picks[pi];
           const correct = rowValue(pick.out.readout[r]);
           const echo = pick.t.label + (c.unit ? " " + c.unit : "");
           if (sameValue(correct, echo)) continue;
+          const givenParts = fixed.concat([conditionText(c, pick.t.key)]);
+          if (printedAnswer(givenParts, correct)) continue;
           const options = fillOptions(values, correct);
           if (options.length < 4) continue;
           const idx = options.indexOf(correct);
           if (idx < 0) continue;
+          const given = givenParts.join("; ");
           group.push({
-            q: c.label + " = " + pick.t.label + (c.unit ? " " + c.unit : "") +
-              " bo‘lganda, “" + rowLabel + "” qanday bo‘ladi?",
+            q: "Berilgan: " + given + ". “" + rowLabel + "” qanday bo‘ladi?",
             options: options,
             correct: idx,
             why: rowLabel + " = " + correct + "."
