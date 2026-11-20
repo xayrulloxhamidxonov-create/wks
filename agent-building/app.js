@@ -275,8 +275,19 @@
     analyze: { label: "Tahlil", dur: 60 },
     collect: { label: "Yig‘ish", dur: 5 },
     vote: { label: "Ovoz berish", dur: 14 },
-    apply: { label: "Joriy qilish", dur: 6 }
+    apply: { label: "Push qilish", dur: 6 },
+    verify: { label: "Tekshiruv", dur: 20 }
   };
+
+  const VERIFY_BUGS = [
+    "mobil ekranda natija paneli pastga siljidi",
+    "slayder qiymati qayta ochilganda saqlanmadi",
+    "ogohlantirish banneri sarlavha bilan ustma-ust tushdi",
+    "hisobot faylida o‘lchov birligi tushib qoldi",
+    "sinf honasi kodi bilan kirishda kechikish bor",
+    "sahifa telefonda gorizontal suriladi",
+    "kesh eski skriptni ko‘rsatmoqda"
+  ];
 
   const ROLE_BIAS = {
     teacher: { baholash: 0.3, hisobot: 0.24, guruh: 0.2, tushunarlilik: 0.14, tillar: 0.1 },
@@ -350,7 +361,12 @@
     revealT: 0,
     changelog: [],
     applied: [],
-    lastApplied: ""
+    lastApplied: "",
+    pushed: null,
+    verify: null,
+    stopMode: false,
+    checkIdx: 0,
+    checkT: 0
   };
 
   function orderText(n, applied) {
@@ -376,7 +392,8 @@
     return clamp(p, 0.08, 0.95);
   }
 
-  function buildProposals() {
+  function buildProposals(limit) {
+    const max = limit || 2;
     const counts = {};
     for (const a of agents) {
       for (const n of a.notes) {
@@ -387,9 +404,9 @@
     let picked = Object.keys(counts)
       .filter(k => counts[k] >= 2 && fresh(k))
       .sort((x, y) => counts[y] - counts[x])
-      .slice(0, 2);
+      .slice(0, max);
     if (!picked.length) {
-      picked = Object.keys(counts).filter(fresh).sort((x, y) => counts[y] - counts[x]).slice(0, 2);
+      picked = Object.keys(counts).filter(fresh).sort((x, y) => counts[y] - counts[x]).slice(0, max);
     }
     if (!picked.length) {
       cycle.applied = [];
@@ -447,9 +464,8 @@
     } else if (phase === "vote") {
       for (const a of agents) a.state = "rest";
       buildVotes();
-      bossSay(cycle.proposals.length === 2
-        ? "Taklif: «" + cycle.proposals[0].label + "» yoki «" + cycle.proposals[1].label + "». Hammangiz ovoz bering."
-        : "Bitta taklif: «" + cycle.proposals[0].label + "». Ovoz bering.", "vote");
+      const names = cycle.proposals.map(p => "«" + p.label + "»").join(", ");
+      bossSay("Takliflar: " + names + ". Hammangiz ovoz bering.", "vote");
     } else if (phase === "apply") {
       while (cycle.reveal < agents.length) revealStep();
       const passed = cycle.votes.filter(v => v.yes > v.no).sort((a, b) => (b.yes - b.no) - (a.yes - a.no));
@@ -458,16 +474,58 @@
         cycle.version++;
         if (cycle.applied.indexOf(best.topic) === -1) cycle.applied.push(best.topic);
         cycle.lastApplied = best.label;
+        cycle.pushed = { label: best.label, task: best.task, version: ver() };
         cycle.changelog.unshift(ver() + " — " + best.task + " (" + best.yes + "/" + (best.yes + best.no) + " ovoz)");
         if (cycle.changelog.length > 6) cycle.changelog.pop();
-        bossSay("Ovozlar bo‘yicha «" + best.label + "» joriy qilindi. Yangi versiya " + ver() + ".", "apply");
+        bossSay("Ovozlar bo‘yicha «" + best.label + "» dasturga push qilindi. Yangi versiya " + ver() + ".", "apply");
       } else {
-        bossSay("Bu safar takliflar yetarli ovoz olmadi — o‘zgarish kiritilmadi. Qayta tahlil qilamiz.", "warn");
+        cycle.pushed = null;
+        bossSay("Bu safar takliflar yetarli ovoz olmadi — push qilinmadi. Qayta tahlil qilamiz.", "warn");
       }
+    } else if (phase === "verify") {
+      cycle.stopMode = false;
+      cycle.checkIdx = 0;
+      cycle.checkT = 0;
+      cycle.verify = { ok: 0, err: 0, errors: [] };
+      const target = cycle.pushed ? "«" + cycle.pushed.label + "» (" + cycle.pushed.version + ")" : "oxirgi o‘zgarish";
+      bossSay("Push bajarildi: " + target + ". Endi shu o‘zgarishni tekshiring — xatosi bormi, hamma joyda ishlayaptimi?", "verify");
     } else if (phase === "command") {
       cycle.orderNo++;
       cycle.order = orderText(cycle.orderNo, cycle.lastApplied);
       bossSay(cycle.order);
+    }
+    updateStopBtn();
+    dirty = true;
+  }
+
+  function finishVerify() {
+    const v = cycle.verify || { ok: 0, err: 0, errors: [] };
+    const total = v.ok + v.err;
+    if (!total) {
+      bossSay("Tekshiruvda hech kim javob bermadi — keyingi sikl tahlili boshlanadi.", "warn");
+      return;
+    }
+    if (v.err === 0) {
+      bossSay("Tekshiruv: " + total + " ta agent tekshirdi — xato topilmadi. Push toza, keyingi buyruqni kutamiz.", "apply");
+    } else {
+      bossSay("Tekshiruv: " + v.ok + " agent xato topmadi, " + v.err + " ta xato qayd etildi: " + v.errors[0] + (v.errors.length > 1 ? " va boshqalar" : "") + ". Keyingi siklda tuzatamiz.", "warn");
+    }
+  }
+
+  function writeCheck(a) {
+    const errRate = a.role === "danger" ? 0.5 : a.role === "critic" ? 0.35 : a.role === "dev" ? 0.18 : 0.1;
+    const bad = Math.random() < errRate;
+    const target = cycle.pushed ? "«" + cycle.pushed.label + "»" : "oxirgi o‘zgarish";
+    const bug = pick(VERIFY_BUGS);
+    const text = bad
+      ? a.name + ": " + target + " tekshirdim — xato: " + bug + "."
+      : a.name + ": " + target + " tekshirdim — ishlayapti, xato topilmadi.";
+    a.bubble = { text, ttl: 4.2, tone: bad ? "excite" : "praise" };
+    feed.unshift({ agent: a, topic: "tekshiruv", tone: bad ? "check-err" : "check-ok", text, t: simTime, check: true });
+    if (feed.length > 90) feed.pop();
+    if (cycle.verify) {
+      if (bad) { cycle.verify.err++; cycle.verify.errors.push(bug); }
+      else cycle.verify.ok++;
     }
     dirty = true;
   }
@@ -481,8 +539,16 @@
         revealStep();
       }
     }
+    if (cycle.phase === "verify") {
+      cycle.checkT += dt;
+      if (cycle.checkT >= 0.9 && cycle.checkIdx < agents.length) {
+        cycle.checkT = 0;
+        writeCheck(agents[cycle.checkIdx++]);
+      }
+    }
     if (cycle.t >= PHASES[cycle.phase].dur) {
-      const next = { command: "analyze", analyze: "collect", collect: "vote", vote: "apply", apply: "command" };
+      if (cycle.phase === "verify") finishVerify();
+      const next = { command: "analyze", analyze: "collect", collect: "vote", vote: "apply", apply: "verify", verify: "command" };
       setPhase(next[cycle.phase]);
     }
   }
@@ -644,8 +710,10 @@
           '<span class="chip boss">buyruq</span><time>' + fmtClock(n.t) + '</time></div>' +
           "<p>" + n.text + "</p></div></div>";
       }
-      const cls = n.tone === "praise" ? "praise" : n.tone === "excite" ? "excite" : "";
-      const label = n.tone === "praise" ? "maqtov" : n.tone === "excite" ? "talab" : "muammo";
+      const cls = n.check ? (n.tone === "check-err" ? "err" : "check")
+        : n.tone === "praise" ? "praise" : n.tone === "excite" ? "excite" : "";
+      const label = n.check ? (n.tone === "check-err" ? "xato" : "xato yo‘q")
+        : n.tone === "praise" ? "maqtov" : n.tone === "excite" ? "talab" : "muammo";
       return '<div class="feed-item">' +
         '<span class="fdot" style="background:' + n.agent.color + '"></span>' +
         '<div><div class="fmeta"><b>' + n.agent.name + '</b><span class="role">' + n.agent.roleLabel + '</span>' +
@@ -1111,8 +1179,32 @@
 
   byId("pause").addEventListener("click", e => {
     playing = !playing;
-    e.currentTarget.textContent = playing ? "To‘xtatish" : "Davom ettirish";
+    e.currentTarget.textContent = playing ? "Pauza" : "Davom ettirish";
   });
+
+  function updateStopBtn() {
+    const btn = byId("stop-vote");
+    if (!btn) return;
+    const active = cycle.stopMode && (cycle.phase === "vote" || cycle.phase === "apply");
+    btn.classList.toggle("active", active);
+    btn.textContent = active
+      ? (cycle.phase === "vote" ? "To‘xtatildi · ovoz" : "To‘xtatildi · push")
+      : "Stop · ovozga";
+  }
+
+  function stopAndVote() {
+    if (cycle.phase !== "analyze" && cycle.phase !== "command") return false;
+    if (!playing) { playing = true; byId("pause").textContent = "Pauza"; }
+    for (const a of agents) { a.state = "rest"; a.bubble = null; }
+    buildProposals(4);
+    cycle.stopMode = true;
+    setPhase("vote");
+    updateStopBtn();
+    bossSay("Stop bosildi: tahlil to‘xtadi, " + cycle.proposals.length + " ta xulosa ovozga qo‘yildi.", "warn");
+    return true;
+  }
+
+  byId("stop-vote").addEventListener("click", stopAndVote);
 
   document.querySelectorAll(".speed").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1145,6 +1237,7 @@
     setPhase,
     tick,
     draw,
+    stopAndVote,
     simulate(sec) {
       const step = 0.25;
       for (let i = 0; i < sec / step; i++) tick(step);

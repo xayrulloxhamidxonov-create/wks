@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>Agent bino — VirtualLab ustaxonasi</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261120">
 </head>
 <body>
 <header class="top">
@@ -18,7 +18,8 @@
   </div>
   <div class="stats" id="stats"></div>
   <div class="controls">
-    <button type="button" id="pause">To‘xtatish</button>
+    <button type="button" id="pause">Pauza</button>
+    <button type="button" id="stop-vote">Stop · ovozga</button>
     <button type="button" class="speed active" data-speed="1">1×</button>
     <button type="button" class="speed" data-speed="2">2×</button>
     <button type="button" class="speed" data-speed="4">4×</button>
@@ -29,7 +30,7 @@
 <main>
   <section class="stage">
     <canvas id="town" aria-label="20 ta agent ishlayotgan bino"></canvas>
-    <p class="hint">Xonani bosing — agent kartasi ochiladi. Qoder buyruq beradi, agentlar tahlil qiladi, ovoz beriladi va g‘olib taklif dasturga joriy qilinadi.</p>
+    <p class="hint">Xonani bosing — agent kartasi ochiladi. «Stop · ovozga» tahlilni to‘xtatib, 3–4 xulosani ovozga qo‘yadi; g‘olib dasturga push qilinadi, so‘ng agentlar uni xatoga tekshiradi.</p>
     <div class="legend">
       <span><i style="background:var(--blue)"></i>O‘qituvchi</span>
       <span><i style="background:var(--green)"></i>Talaba</span>
@@ -72,6 +73,6 @@
   </aside>
 </main>
 
-<script src="app.js"></script>
+<script src="app.js?v=20261120"></script>
 </body>
 </html>
