@@ -669,6 +669,17 @@ body.tp-lock{overflow:hidden}
   word-break:break-word;
 }
 .cr-formula b{color:var(--teal);font-weight:600}
+.cr-checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.cr-checks li{
+  position:relative;padding:6px 8px 6px 26px;border-radius:8px;
+  font-size:11.5px;line-height:1.45;color:#cfe6f3;background:rgba(255,255,255,.02);
+}
+.cr-checks li::before{position:absolute;left:9px;top:6px;font-weight:700}
+.cr-checks li.ok::before{content:"✓";color:#3FD0A3}
+.cr-checks li.warn::before{content:"!";color:#FFC24B}
+.cr-checks li.danger::before{content:"!";color:#FF7A7A}
+.cr-checks li.warn{color:#f6dfae;background:rgba(255,194,75,.06)}
+.cr-checks li.danger{color:#ffc2c2;background:rgba(255,122,122,.1)}
 
 .air-variant{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .air-variant select{
@@ -1703,15 +1714,15 @@ noscript{display:block;padding:20px;color:#ffb3b3;background:#2a1010;border:1px 
 </footer>
 
 <noscript>Bu dastur ishlashi uchun brauzerda JavaScript yoqilgan bo‘lishi kerak.</noscript>
-<script src="app.js?v=20261112"></script>
-<script src="subjects.js?v=20261112"></script>
-<script src="heating-core.js?v=20261112"></script>
-<script src="heating-a.js?v=20261112"></script>
-<script src="heating-b.js?v=20261112"></script>
-<script src="physics-labs.js?v=20261112"></script>
-<script src="quiz.js?v=20261112"></script>
+<script src="app.js?v=20261120"></script>
+<script src="subjects.js?v=20261120"></script>
+<script src="heating-core.js?v=20261120"></script>
+<script src="heating-a.js?v=20261120"></script>
+<script src="heating-b.js?v=20261120"></script>
+<script src="physics-labs.js?v=20261120"></script>
+<script src="quiz.js?v=20261120"></script>
 <script src="peerjs.min.js"></script>
-<script src="teacher.js?v=20261112"></script>
-<script type="module" src="anatomy3d.js?v=20261112"></script>
+<script src="teacher.js?v=20261120"></script>
+<script type="module" src="anatomy3d.js?v=20261120"></script>
 </body>
 </html>

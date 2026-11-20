@@ -1597,6 +1597,59 @@
     cLine.style.marginTop = "7px";
     calcCard.append(fLine, cLine, el("p", "cr-note", "Qiymatlar fayldagi formula bo‘yicha real vaqtda hisoblanadi."));
 
+    const checkCard = el("div", "card");
+    checkCard.append(el("h3", "", "Avtomatik tekshiruv"));
+    const checkList = el("ul", "cr-checks");
+    const checkNote = el("p", "cr-note");
+    checkCard.append(checkList, checkNote);
+
+    function updateChecks() {
+      const items = [];
+      room.variables.forEach((v, i) => {
+        const val = Number(state[v.id]);
+        const dec = v.step < 0.1 ? 2 : v.step < 1 ? 1 : 0;
+        const atEdge = !isFinite(val) || val <= v.min || val >= v.max;
+        items.push({
+          ok: !atEdge,
+          text: (i + 1) + "-qadam: " + v.label + " = " + fmtNum(val, dec) + (v.unit ? " " + v.unit : "") +
+            " (oraliq " + fmtNum(v.min, dec) + "–" + fmtNum(v.max, dec) + ")" + (atEdge ? " — chegarada" : "")
+        });
+      });
+      const rows = evaluateRows(room, state);
+      const first = rows[0];
+      const computed = !!(first && first.value != null && isFinite(first.value));
+      items.push({
+        ok: computed,
+        text: "Hisob: " + (computed
+          ? first.label + " = " + fmtNum(first.value, first.dec) + (first.unit ? " " + first.unit : "")
+          : "bajarilmadi — kiritishlarni tekshiring")
+      });
+      let noteText = "Xulosa: parametrlar me’yorida, hisob to‘g‘ri bajarildi.";
+      let danger = false;
+      if (isHeaterRoom(room) && state.w != null) {
+        const wv = Number(state.w);
+        const lim = 4;
+        if (wv > lim) {
+          danger = true;
+          items.push({ ok: false, danger: true, text: "Xavf: sirtqi yuklama " + fmtNum(wv, 2) + " Vt/sm² — me’yor " + fmtNum(lim, 1) + " Vt/sm²" });
+          noteText = "Xulosa: qizdirgich qizib ketishi mumkin. w ni " + fmtNum(lim, 1) + " gacha tushiring yoki U ni oshiring.";
+        } else if (wv > 3.4) {
+          items.push({ ok: false, text: "Diqqat: sirtqi yuklama yuqori (" + fmtNum(wv, 2) + " Vt/sm²), chegaraga yaqin" });
+          noteText = "Xulosa: me’yor ichida, lekin zaxira kam — w ni 3,4 dan pastga tushirish tavsiya etiladi.";
+        }
+      }
+      if (!danger && items.some(i => !i.ok) && noteText.indexOf("Xulosa: parametrlar") === 0) {
+        noteText = "Xulosa: chegara qiymatlar bor — natija xatolikka sezgir, oraliq o‘rtasiga yaqinlashtiring.";
+      }
+      checkList.textContent = "";
+      items.forEach(it => {
+        const li = el("li", "cr-check " + (it.danger ? "danger" : it.ok ? "ok" : "warn"));
+        li.textContent = it.text;
+        checkList.append(li);
+      });
+      checkNote.textContent = noteText;
+    }
+
     function refresh() {
       const rows = evaluateRows(room, state);
       resBody.textContent = "";
@@ -1618,6 +1671,7 @@
       cLine.textContent = first && first.value != null
         ? "Hisob: " + substituted(room, state) + " = " + fmtNum(first.value, first.dec) + (first.unit ? " " + first.unit : "")
         : "Hisob: —";
+      updateChecks();
 
       if (role === "student" && studentName) {
         const snapshot = {};
@@ -1663,7 +1717,7 @@
       saveText("sinf-honasi-" + room.code + ".txt", lines.join("\n"));
     });
 
-    side.append(controls, resultCard, calcCard, inputCard);
+    side.append(controls, resultCard, checkCard, calcCard, inputCard);
 
     if (room.equipment && room.equipment.length) {
       const eq = el("div", "card");
@@ -2312,7 +2366,58 @@
         subtitle: "Virtual laboratoriya · hisoblash modeli"
       };
       drawHeatElement(ctx, s, (now - started) / 1000);
+      drawSafety(s, (now - started) / 1000);
       raf = requestAnimationFrame(draw);
+    }
+
+    function drawSafety(s, t) {
+      const danger = s.w > 4;
+      const warn = !danger && s.w > 3.4;
+      if (!danger && !warn) return;
+      const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+
+      const g = ctx.createRadialGradient(CW / 2, CH * 0.55, CH * 0.25, CW / 2, CH * 0.55, CH * 0.85);
+      g.addColorStop(0, "rgba(255,60,40,0)");
+      g.addColorStop(1, danger
+        ? "rgba(255,40,30," + (0.2 * (0.7 + 0.3 * pulse)).toFixed(3) + ")"
+        : "rgba(255,150,40," + (0.1 * (0.7 + 0.3 * pulse)).toFixed(3) + ")");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, CW, CH);
+
+      if (danger) {
+        for (let i = 0; i < 14; i++) {
+          const sx = 480 + Math.sin(t * 2.6 + i * 1.7) * (26 + i * 3);
+          const sy = 400 - ((t * 120 + i * 41) % 170);
+          const a = 1 - (400 - sy) / 170;
+          ctx.strokeStyle = "rgba(255,190,90," + (0.65 * a).toFixed(3) + ")";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx - 2, sy - 7);
+          ctx.stroke();
+        }
+      }
+
+      const label = danger
+        ? "XAVF: sirtqi yuklama " + s.w.toFixed(1).replace(".", ",") + " Vt/sm² — me’yor 4,0"
+        : "Diqqat: sirtqi yuklama " + s.w.toFixed(1).replace(".", ",") + " Vt/sm² — chegaraga yaqin";
+      ctx.font = "600 13px system-ui, -apple-system, sans-serif";
+      const tw = ctx.measureText(label).width;
+      const bw = tw + 36, bh = 32, bx = (CW - bw) / 2, by = 16;
+      ctx.globalAlpha = 0.94;
+      roundRect(ctx, bx, by, bw, bh, 9);
+      ctx.fillStyle = danger ? "rgba(90,12,16,.92)" : "rgba(64,46,8,.92)";
+      ctx.fill();
+      ctx.strokeStyle = danger ? "rgba(255,122,122,.8)" : "rgba(255,194,75,.8)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = danger ? "#ffd0d0" : "#ffe3ac";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, CW / 2, by + bh / 2 + 1);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
     }
     raf = requestAnimationFrame(draw);
     return function () {

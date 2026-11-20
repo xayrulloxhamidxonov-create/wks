@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Agent bino — VirtualLab ustaxonasi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="live-dot" aria-hidden="true"></span>
+    <div>
+      <h1>Agent bino</h1>
+      <p>20 ta agent va Qoder boshlig‘i VirtualLab UZ ni tahlil qilmoqda</p>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="controls">
+    <button type="button" id="pause">To‘xtatish</button>
+    <button type="button" class="speed active" data-speed="1">1×</button>
+    <button type="button" class="speed" data-speed="2">2×</button>
+    <button type="button" class="speed" data-speed="4">4×</button>
+    <button type="button" id="clear">Tozalash</button>
+  </div>
+</header>
+
+<main>
+  <section class="stage">
+    <canvas id="town" aria-label="20 ta agent ishlayotgan bino"></canvas>
+    <p class="hint">Xonani bosing — agent kartasi ochiladi. Qoder buyruq beradi, agentlar tahlil qiladi, ovoz beriladi va g‘olib taklif dasturga joriy qilinadi.</p>
+    <div class="legend">
+      <span><i style="background:var(--blue)"></i>O‘qituvchi</span>
+      <span><i style="background:var(--green)"></i>Talaba</span>
+      <span><i style="background:var(--purple)"></i>Dasturchi</span>
+      <span><i style="background:var(--red)"></i>Tanqidchi</span>
+      <span><i style="background:var(--amber)"></i>Xavf ishqibozi</span>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="card boss-card" id="boss-card">
+      <div class="boss-head">
+        <span class="boss-avatar" aria-hidden="true">Q</span>
+        <div class="boss-who">
+          <h2>Qoder</h2>
+          <p>Bosh agent · <b id="boss-phase">Buyruq</b></p>
+        </div>
+        <span class="boss-ver" id="boss-ver">v1.0</span>
+      </div>
+      <p class="boss-order" id="boss-order"></p>
+      <div class="boss-progress"><i id="boss-bar"></i></div>
+      <div class="boss-vote" id="boss-vote" hidden></div>
+      <h3>Dastur tarixi</h3>
+      <ol class="boss-log" id="boss-log"></ol>
+    </div>
+
+    <div class="card agent-card" id="agent-card" hidden></div>
+
+    <div class="card feed-card">
+      <h2>Xulosalar oqimi</h2>
+      <div class="feed" id="feed"></div>
+    </div>
+
+    <div class="card summary-card">
+      <h2>Ovozlar xulosasi</h2>
+      <div id="summary"></div>
+      <h3>Keyingi ishlar</h3>
+      <ol id="next"></ol>
+    </div>
+  </aside>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
